@@ -1,0 +1,31 @@
+version: '3.2'
+services:
+
+  postgres:
+    container_name: 'pagemanager_postgres'
+    image: 'postgres'
+    ports:
+      - '5453:5432'
+    volumes:
+      - 'postgres_data:/var/lib/postgresql/data'
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'postgres'
+      POSTGRES_DB: 'pagemanager'
+
+  mysql:
+    container_name: 'pagemanager_mysql'
+    image: 'mysql'
+    ports:
+      - '3327:3306'
+    volumes:
+      - 'mysql_data:/var/lib/mysql'
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_USER: 'mysql'
+      MYSQL_PASSWORD: 'mysql'
+      MYSQL_DATABASE: 'pagemanager'
+
+volumes:
+  postgres_data:
+  mysql_data:
