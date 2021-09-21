@@ -1,0 +1,51 @@
+ddl.go
+column.go | constraint.go | index.go
+fmt.go
+trigger.go | function.go
+table.go
+view.go
+v.go | t.go
+schema.go
+introspect.go
+catalog.go
+migration_commands.go
+
+implement WriteStructs(*WriteStructOptions)
+
+mysql_sakila_introspect is wrong:
+rating ENUM('G','PG','PG-13','R','NC-17') NOT NULL DEFAULT G
+should be DEFAULT 'G'
+
+rename 'db' to 'sakila' (d'oh this was so obvious)
+
+shower thought: I could probably exclude all the constraint indexes at the query level by simply adding a NOT EXISTS predicate checking if the index name matches a constraint name.
+
+get rid of the fancy defer func for the create or update workflow. Refer to dbm.loadTable for what the new workflow should look like.
+
+migrationDir support
+
+bah gawd. types. domains. enums.
+ALSO: functions may be user-defined aggregate functions or user-defined windows
+
+add comments to introspect functions
+postgres comments are stored in pg_description
+
+// pass a tx in explicitly to run everything in a transaction
+
+001.up.sql
+001.down.sql
+002.manual-transaction.up.sql
+002.down.sql
+migration_name | started_at | ended_at | error_msg
+index (migration_name)
+index (migration_name, started_at, ended_at)
+
+if the user eventually wants to expose the sq.Query by a DDLView, I can add a
+function just for that.
+func GetDDLViewQuery(ddlView DDLView) sq.Query
+
+consider adding ability to tag constraints, indexes, triggers, views, functions
+with a versionID. This would open the path for automatically dropping and
+recreating them if the versionID changes.
+
+autodetection of dialect within AutoMigrate is impossible because it depends on running SELECT queries that may potentially fail (i.e. no such function 'sqlite_version()'), making them unsuitable to be run in a transaction (which AutoMigrate expressly sets out to support).
