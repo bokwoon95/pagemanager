@@ -45,6 +45,7 @@ func NewFS(one, two, three, four fs.FS) *FS {
 }
 
 // TODO: oh god this is more complicated than I thought. I may be checking the site-specific media and media correctly, but what about the site-specific templates?
+// TODO: the template itself may be located in site-specific templates or general templates, but the overrides are always sourced from site-specific media instead of general media *if* there is a .SiteID at all. Put it another way, a site should never be able to override general template data in media.
 func (fsys *FS) resolveMedia(data map[string]any, filename string) string {
 	// e.g. {{ media . "banner.jpg" }}
 	themeDir, _ := data["ThemeDir"].(string)
