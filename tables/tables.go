@@ -9,10 +9,10 @@ type PM_SITE struct {
 	SUBDOMAIN    sq.StringField
 }
 
-type PM_ROUTE struct {
+type PM_URL struct {
 	sq.TableInfo `ddl:"primarykey={. cols=site_id,url_path}"`
 	SITE_ID      sq.UUIDField
-	URL_PATH     sq.StringField
+	PATH         sq.StringField
 	PLUGIN       sq.StringField
 	PARAMS       sq.JSONField
 }
@@ -28,9 +28,9 @@ type PM_TEMPLATE_DATA struct {
 type PM_USER struct {
 	sq.TableInfo  `ddl:"primarykey={. cols=user_id}"`
 	USER_ID       sq.UUIDField
-	USERNAME      sq.StringField
+	USERNAME      sq.StringField `ddl:"unique"`
 	EMAIL         sq.StringField `ddl:"unique"`
-	NAME          sq.StringField `ddl:"unique"`
+	NAME          sq.StringField
 	PASSWORD_HASH sq.StringField
 }
 
@@ -44,7 +44,7 @@ type PM_USER_AUTHZ struct {
 }
 
 type PM_USER_AUTHZ_ROLES_TBLIDX struct {
-	sq.TableInfo `ddl:"ignore=postgres,mysql primarykey={. cols=site_id,user_id,role}"`
+	sq.TableInfo `ddl:"ignore=postgres,mysql primarykey={pm_user_authz_roles_tblidx_pkey cols=site_id,user_id,role}"`
 	SITE_ID      sq.UUIDField
 	USER_ID      sq.UUIDField
 	ROLE         sq.StringField
@@ -62,5 +62,4 @@ type PM_SESSION struct {
 	SESSION_HASH sq.BlobField
 	SITE_ID      sq.UUIDField
 	USER_ID      sq.UUIDField
-	DATA         sq.JSONField
 }
