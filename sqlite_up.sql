@@ -115,6 +115,7 @@ CREATE INDEX IF NOT EXISTS pm_user_authz_roles_tblidx_site_id_role_idx ON pm_use
 
 CREATE TABLE IF NOT EXISTS pm_role (
     site_id UUID
+    --,namespace TEXT
     ,role TEXT
     ,authz_attributes JSON
 
