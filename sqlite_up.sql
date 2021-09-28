@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS pm_site (
     ,CONSTRAINT pm_site_domain_subdomain_key UNIQUE (domain, subdomain)
 );
 
+-- url -> domain, subdomain, langcode, path -> site_id, langcode, path
 CREATE TABLE IF NOT EXISTS pm_url (
     site_id UUID
     ,path TEXT
