@@ -12,10 +12,11 @@ type PM_SITE struct {
 }
 
 type PM_URL struct {
-	sq.TableInfo `ddl:"primarykey={. cols=site_id,url_path}"`
+	sq.TableInfo `ddl:"primarykey={. cols=site_id,path}"`
 	SITE_ID      sq.UUIDField
 	PATH         sq.StringField
 	PLUGIN       sq.StringField
+	HANDLER      sq.StringField
 	PARAMS       sq.JSONField
 }
 
@@ -36,27 +37,25 @@ type PM_USER struct {
 	PASSWORD_HASH sq.StringField
 }
 
-type PM_USER_AUTHZ struct {
-	sq.TableInfo          `ddl:"primarykey={. cols=site_id,user_id}"`
-	SITE_ID               sq.UUIDField
-	USER_ID               sq.UUIDField
-	ROLES                 sq.CustomField `ddl:"type=JSON postgres:type=TEXT[]"`
-	AUTHZ_ATTRIBUTES      sq.JSONField
-	ROLE_AUTHZ_ATTRIBUTES sq.JSONField
-}
-
-type PM_USER_AUTHZ_ROLES_TBLIDX struct {
-	sq.TableInfo `ddl:"ignore=postgres,mysql primarykey={pm_user_authz_roles_tblidx_pkey cols=site_id,user_id,role}"`
+type PM_ROLE struct {
+	sq.TableInfo `ddl:"primarykey={. cols=site_id,role}"`
 	SITE_ID      sq.UUIDField
-	USER_ID      sq.UUIDField
 	ROLE         sq.StringField
 }
 
-type PM_ROLE struct {
-	sq.TableInfo     `ddl:"ignore=postgres,mysql primarykey={. cols=site_id,role}"`
-	SITE_ID          sq.UUIDField
-	ROLE             sq.StringField
-	AUTHZ_ATTRIBUTES sq.JSONField
+type PM_USER_ROLE struct {
+	sq.TableInfo `ddl:"primarykey={. cols=site_id,role,user_id}"`
+	SITE_ID      sq.UUIDField
+	ROLE         sq.StringField
+	USER_ID      sq.UUIDField
+}
+
+type PM_PERMISSION struct {
+	sq.TableInfo `ddl:"ignore=postgres,mysql primarykey={. cols=site_id,role,label,action}"`
+	SITE_ID      sq.UUIDField
+	ROLE         sq.StringField
+	LABEL        sq.StringField
+	ACTION       sq.StringField
 }
 
 type PM_SESSION struct {
