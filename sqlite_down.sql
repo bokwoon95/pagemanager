@@ -10,6 +10,6 @@ DROP TABLE IF EXISTS pm_role;
 
 DROP TABLE IF EXISTS pm_user_role;
 
-DROP TABLE IF EXISTS pm_policy;
+DROP TABLE IF EXISTS pm_permission;
 
 DROP TABLE IF EXISTS pm_session;

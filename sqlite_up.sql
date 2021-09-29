@@ -70,12 +70,22 @@ CREATE INDEX IF NOT EXISTS pm_user_role_site_id ON pm_user_role (site_id);
 
 CREATE INDEX IF NOT EXISTS pm_user_role_user_id ON pm_user_role (user_id);
 
-CREATE TABLE IF NOT EXISTS pm_policy (
+-- site_id, label
+
+CREATE TABLE IF NOT EXISTS pm_permission (
     site_id UUID
     ,role TEXT
     ,label TEXT -- pm-superadmin, pm-admin, pm-url
     ,action TEXT
+
+    ,CONSTRAINT pm_permission_site_id_role_label_action_pkey PRIMARY KEY (site_id, role, label, action)
+    ,CONSTRAINT pm_permission_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
+    ,CONSTRAINT pm_permission_site_id_role_fkey FOREIGN KEY (site_id, role) REFERENCES pm_role (site_id, role)
 );
+
+CREATE INDEX IF NOT EXISTS pm_permission_site_id_idx ON pm_permission (site_id);
+
+CREATE INDEX IF NOT EXISTS pm_permission_site_id_role_idx ON pm_permission (site_id, role);
 
 CREATE TABLE pm_session (
     session_hash BLOB
