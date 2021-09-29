@@ -56,19 +56,19 @@ CREATE TABLE IF NOT EXISTS pm_role (
 
 CREATE INDEX IF NOT EXISTS pm_role_site_id_idx ON pm_role (site_id);
 
-CREATE TABLE IF NOT EXISTS pm_user_role (
+CREATE TABLE IF NOT EXISTS pm_role_user (
     site_id UUID
     ,role TEXT
     ,user_id UUID
 
-    ,CONSTRAINT pm_user_role_site_id_role_user_id_pkey PRIMARY KEY (site_id, role, user_id)
-    ,CONSTRAINT pm_user_role_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
-    ,CONSTRAINT pm_user_role_user_id_fkey FOREIGN KEY (user_id) REFERENCES pm_user (user_id)
+    ,CONSTRAINT pm_role_user_site_id_role_user_id_pkey PRIMARY KEY (site_id, role, user_id)
+    ,CONSTRAINT pm_role_user_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
+    ,CONSTRAINT pm_role_user_user_id_fkey FOREIGN KEY (user_id) REFERENCES pm_user (user_id)
 );
 
-CREATE INDEX IF NOT EXISTS pm_user_role_site_id ON pm_user_role (site_id);
+CREATE INDEX IF NOT EXISTS pm_role_user_site_id ON pm_role_user (site_id);
 
-CREATE INDEX IF NOT EXISTS pm_user_role_user_id ON pm_user_role (user_id);
+CREATE INDEX IF NOT EXISTS pm_role_user_user_id ON pm_role_user (user_id);
 
 -- site_id, label
 

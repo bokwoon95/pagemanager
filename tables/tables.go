@@ -43,7 +43,7 @@ type PM_ROLE struct {
 	ROLE         sq.StringField
 }
 
-type PM_USER_ROLE struct {
+type PM_ROLE_USER struct {
 	sq.TableInfo `ddl:"primarykey={. cols=site_id,role,user_id}"`
 	SITE_ID      sq.UUIDField
 	ROLE         sq.StringField
