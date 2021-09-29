@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS pm_url (
     site_id UUID
     ,path TEXT
     ,plugin TEXT
+    ,handler TEXT
     ,params JSON
 
     ,CONSTRAINT pm_url_site_id_path_pkey PRIMARY KEY (site_id, path)
@@ -45,86 +46,36 @@ CREATE TABLE IF NOT EXISTS pm_user (
     ,CONSTRAINT pm_user_email_key UNIQUE (email)
 );
 
-CREATE TABLE IF NOT EXISTS pm_user_authz (
-    site_id UUID
-    ,user_id UUID
-    ,roles JSON
-    ,authz_attributes JSON
-    ,role_authz_attributes JSON
-
-    ,CONSTRAINT pm_user_authz_site_id_user_id_pkey PRIMARY KEY (site_id, user_id)
-    ,CONSTRAINT pm_user_authz_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
-    ,CONSTRAINT pm_user_authz_user_id_fkey FOREIGN KEY (user_id) REFERENCES pm_user (user_id)
-);
-
-CREATE INDEX IF NOT EXISTS pm_user_authz_site_id_idx ON pm_user_authz (site_id);
-
-CREATE INDEX IF NOT EXISTS pm_user_authz_user_id_idx ON pm_user_authz (user_id);
-
-CREATE TRIGGER pm_user_authz_roles_after_insert AFTER INSERT ON pm_user_authz
-BEGIN
-    INSERT INTO pm_user_authz_roles_tblidx
-        (site_id, user_id, role)
-    SELECT
-        NEW.site_id
-        ,NEW.user_id
-        ,json_each.value AS role
-    FROM
-        json_each(NEW.roles)
-    WHERE
-        TRUE
-    ON CONFLICT DO NOTHING;
-END;
-
-CREATE TRIGGER pm_user_authz_roles_after_update AFTER UPDATE ON pm_user_authz
-WHEN OLD.roles <> NEW.roles
-BEGIN
-    DELETE FROM pm_user_authz_roles_tblidx
-    WHERE NOT EXISTS (
-        SELECT 1
-        FROM
-            json_each(NEW.roles)
-        WHERE
-            (site_id, user_id) = (NEW.site_id, NEW.user_id)
-            AND role = json_each.value
-    );
-    INSERT INTO pm_user_authz_roles_tblidx
-        (site_id, user_id, role)
-    SELECT
-        NEW.site_id
-        ,NEW.user_id
-        ,json_each.value AS role
-    FROM
-        json_each(NEW.roles)
-    WHERE
-        TRUE
-    ON CONFLICT DO NOTHING;
-END;
-
-CREATE TABLE IF NOT EXISTS pm_user_authz_roles_tblidx (
-    site_id UUID
-    ,user_id UUID
-    ,role TEXT
-
-    ,CONSTRAINT pm_user_authz_roles_tblidx_pkey PRIMARY KEY (site_id, user_id, role)
-    ,CONSTRAINT pm_user_authz_roles_tblix_fkey FOREIGN KEY (site_id, user_id) REFERENCES pm_user_authz (site_id, user_id)
-);
-
-CREATE INDEX IF NOT EXISTS pm_user_authz_roles_tblix_site_id_user_id_idx ON pm_user_authz_roles_tblidx (site_id, user_id);
-
-CREATE INDEX IF NOT EXISTS pm_user_authz_roles_tblidx_site_id_role_idx ON pm_user_authz_roles_tblidx (site_id, role);
-
 CREATE TABLE IF NOT EXISTS pm_role (
     site_id UUID
-    --,namespace TEXT
     ,role TEXT
-    ,authz_attributes JSON
 
-    ,CONSTRAINT pm_role_site_id_role_pkey PRIMARY KEY (site_id, role)
-    ,CONSTRAINT pm_role_site_id_jkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
+    ,CONSTRAINT pm_role_site_id_role PRIMARY KEY (site_id, role)
+    ,CONSTRAINT pm_role_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
 );
 
-CREATE INDEX pm_role_site_id_idx ON pm_role (site_id);
+CREATE INDEX IF NOT EXISTS pm_role_site_id_idx ON pm_role (site_id);
+
+CREATE TABLE IF NOT EXISTS pm_user_role (
+    site_id UUID
+    ,user_id UUID
+    ,role TEXT
+
+    ,CONSTRAINT pm_user_role_site_id_user_id_role_pkey PRIMARY KEY (site_id, user_id, role)
+    ,CONSTRAINT pm_user_role_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
+    ,CONSTRAINT pm_user_role_user_id_fkey FOREIGN KEY (user_id) REFERENCES pm_user (user_id)
+);
+
+CREATE INDEX IF NOT EXISTS pm_user_role_site_id ON pm_user_role (site_id);
+
+CREATE INDEX IF NOT EXISTS pm_user_role_user_id ON pm_user_role (user_id);
+
+CREATE TABLE IF NOT EXISTS pm_policy (
+    site_id UUID
+    ,role TEXT
+    ,label TEXT -- pm-superadmin, pm-admin, pm-url
+    ,action TEXT
+);
 
 CREATE TABLE pm_session (
     session_hash BLOB

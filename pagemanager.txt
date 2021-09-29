@@ -1,0 +1,55 @@
+Domain Objects
+--------------
+- Sites
+- Users
+- URLs
+    - A site admin want to grant users access to only a subset of URLs
+
+Read
+Write
+ReadWrite
+
+0 00
+1 01
+2 10
+3 11
+
+Policies: Read
+
+Admins
+Users
+URLs
+
+Superadmins
+- Add users
+- Assign 'admin' and 'superadmin' role to users
+- Set access policies
+
+Admins
+- Add users
+- Assign roles (other than 'admin' or 'superadmin') to users
+- Read/Write access to the URL dashboard
+
+Users
+- Assign tags (owned by their roles) to objects they create
+    - The only objects right now are: Pages and Posts
+
+Objects: user, admin_role, role, url
+Object tags: user, admin_role, role, url
+Roles: superadmin, admin, user
+
+user.read: superadmin, admin
+user.write: superadmin, admin
+admin_role.read: superadmin
+admin_role.write: superadmin
+role.read: admin
+role.write: admin
+url.read: admin, user
+url.write: admin
+
+a theme is a collection of templates
+a plugin is a collection of handlers
+
+superadmin
+admin
+github.com/kathyp/shop:store-owner
