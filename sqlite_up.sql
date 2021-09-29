@@ -87,13 +87,13 @@ CREATE INDEX IF NOT EXISTS pm_permission_site_id_idx ON pm_permission (site_id);
 
 CREATE INDEX IF NOT EXISTS pm_permission_site_id_role_idx ON pm_permission (site_id, role);
 
-CREATE TABLE pm_session (
+CREATE TABLE IF NOT EXISTS pm_session (
     session_hash BLOB
     ,site_id UUID
     ,user_id UUID
 
     ,CONSTRAINT pm_session_session_hash_pkey PRIMARY KEY (session_hash)
-    ,CONSTRAINT pm_session_site_id_user_id FOREIGN KEY (site_id, user_id) REFERENCES pm_user_authz (site_id, user_id)
+    ,CONSTRAINT pm_session_site_id_user_id_fkey FOREIGN KEY (site_id, user_id) REFERENCES pm_user_authz (site_id, user_id)
     ,CONSTRAINT pm_session_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
     ,CONSTRAINT pm_session_user_id_fkey FOREIGN KEY (user_id) REFERENCES pm_user (user_id)
 );
