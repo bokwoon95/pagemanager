@@ -1,3 +1,11 @@
+$env:PM_SECRET_KEY = ''
+
+session_id.signature
+
+site_id.user_id.signature
+
+site_id.user_id.session_id.signature
+
 Domain Objects
 --------------
 - Sites
