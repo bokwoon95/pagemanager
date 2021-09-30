@@ -70,8 +70,6 @@ CREATE INDEX IF NOT EXISTS pm_role_user_site_id ON pm_role_user (site_id);
 
 CREATE INDEX IF NOT EXISTS pm_role_user_user_id ON pm_role_user (user_id);
 
--- site_id, label
-
 CREATE TABLE IF NOT EXISTS pm_permission (
     site_id UUID
     ,role TEXT
