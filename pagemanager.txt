@@ -6,6 +6,8 @@ site_id.user_id.signature
 
 site_id.user_id.session_id.signature
 
+for singlesite and multisite, setting PM_SECRET_KEY is mandatory
+
 Domain Objects
 --------------
 - Sites
