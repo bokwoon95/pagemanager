@@ -2,6 +2,9 @@ package t2
 
 import (
 	"html/template"
+	"io/fs"
+	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -25,11 +28,23 @@ type Bundle struct {
 	Data     map[string]any
 }
 
+// NOTE: if serverMode=offline and the user hits the URL dashboard, the server sets a blank 'pm-session' with no content.
+// when the page handler handles a request with a 'pm-session' cookie and the server is either in offline mode or the user is a site admin, it injects javascript /pm-templates/pm-edit-button.js into the page which renders an edit button for the user to click. When the server is just crawling itself with no pm-session cookie, it does not render the edit button.
+
 // pm-templates
 // pm-media
 
 // {{ themedir . "banner.jpg" }}
 // /pm-templates/{{ .ThemeDir }}/banner.jpg
+
+// /pm-templates/edit?data=
+// No URL can be called
+
+// site-xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+// /pm-templates/plainsimple/banner.jpg
+// /pm-uploads/site-xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/pm-templates/plainsimple/banner.jpg
+// /pm-uploads/site-xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.jpg
+// /pm-uploads/xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.jpg
 
 // /pm-templates/plainsimple/banner.jpg
 // /pm-templates/github.com/bokwoon95/plainsimple/banner.jpg
@@ -43,4 +58,21 @@ type Bundle struct {
 type FS struct {
 	siteMode      int // 0 - offline, 1 - singlesite, 2 - multisite
 	defaultSiteID uuid.UUID
+	multisite     bool
+	templates     fs.FS
+	uploads       fs.FS
 }
+
+func (tmplsFS *FS) ServeAssets(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.HasPrefix(r.URL.Path, "/pm-templates") {
+			next.ServeHTTP(w, r)
+			return
+		}
+	})
+}
+
+// /about-me?edit
+// /about-me?data=data/site.json
+
+// func ServeTemplate
