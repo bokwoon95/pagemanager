@@ -33,29 +33,28 @@ CREATE TABLE IF NOT EXISTS pm_template_data (
 
 CREATE INDEX IF NOT EXISTS pm_template_data_site_id_idx ON pm_template_data (site_id);
 
+-- /user/$username-$base32_user_id
+-- only $base32_user_id is used to lookup. If the $username doesn't match, initiate a redirect.
+
 CREATE TABLE IF NOT EXISTS pm_user (
     user_id UUID
     ,email TEXT
+    ,username TEXT -- username uniqueness is up to each plugin to handle
     ,name TEXT
+    ,password_hash TEXT
 
     ,CONSTRAINT pm_user_user_id_pkey PRIMARY KEY (user_id)
     ,CONSTRAINT pm_user_email_key UNIQUE (email)
 );
 
--- nickname uniqueness is guaranteed only within a site itself
+-- username is not unique by default: it is up to plugins to decide whether they want to enforce username uniqueness on a global level or on a site level.
 
--- what are the consequences of having site_id in pm_user?
-
--- why am I so attracted to the idea of a global repository of users across all sites in the first place? What features does it enable?
-
+-- pm_site_user is only used if the plugin requires maintaining a separate list of users per site. A plugin can always treat the entirety of pm_user as the site's install base.
 CREATE TABLE IF NOT EXISTS pm_site_user (
     site_id UUID
     ,user_id UUID
-    ,username TEXT
-    ,password_hash TEXT
 
     ,CONSTRAINT pm_site_user_site_id_user_id_pkey PRIMARY KEY (site_id, user_id)
-    ,CONSTRAINT pm_site_user_site_id_username_key UNIQUE (site_id, username)
     ,CONSTRAINT pm_site_user_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
     ,CONSTRAINT pm_site_user_user_id_fkey FOREIGN KEY (user_id) REFERENCES pm_user (user_id)
 );
