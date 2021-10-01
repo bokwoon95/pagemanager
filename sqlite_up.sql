@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS pm_permission (
     site_id UUID
     ,role TEXT
     ,label TEXT -- e.g. pm_url (should this be its own separate table? pm_resource?)
-    ,action INT
+    ,operation INT
 
     ,CONSTRAINT pm_permission_site_id_role_label_action_pkey PRIMARY KEY (site_id, role, label, action)
     ,CONSTRAINT pm_permission_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
