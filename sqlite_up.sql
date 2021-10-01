@@ -44,6 +44,10 @@ CREATE TABLE IF NOT EXISTS pm_user (
 
 -- nickname uniqueness is guaranteed only within a site itself
 
+-- what are the consequences of having site_id in pm_user?
+
+-- why am I so attracted to the idea of a global repository of users across all sites in the first place? What features does it enable?
+
 CREATE TABLE IF NOT EXISTS pm_site_user (
     site_id UUID
     ,user_id UUID
