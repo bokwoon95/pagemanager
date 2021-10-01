@@ -39,7 +39,7 @@ CREATE INDEX IF NOT EXISTS pm_template_data_site_id_idx ON pm_template_data (sit
 CREATE TABLE IF NOT EXISTS pm_user (
     user_id UUID
     ,email TEXT
-    ,username TEXT -- username uniqueness is up to each plugin to handle
+    ,username TEXT
     ,name TEXT
     ,password_hash TEXT
 
@@ -87,11 +87,20 @@ CREATE INDEX IF NOT EXISTS pm_role_user_site_id ON pm_role_user (site_id);
 
 CREATE INDEX IF NOT EXISTS pm_role_user_user_id ON pm_role_user (user_id);
 
+-- 0000 CRUD
+-- 1111 15
+-- 0100 4
+
+-- 1 (1) CREATE
+-- 10 (2) READ
+-- 100 (4) UPDATE
+-- 1000 (8) DELETE
+
 CREATE TABLE IF NOT EXISTS pm_permission (
     site_id UUID
     ,role TEXT
-    ,label TEXT -- pm-superadmin, pm-admin, pm-url
-    ,action TEXT
+    ,label TEXT -- e.g. pm_url (should this be its own separate table? pm_resource?)
+    ,action INT
 
     ,CONSTRAINT pm_permission_site_id_role_label_action_pkey PRIMARY KEY (site_id, role, label, action)
     ,CONSTRAINT pm_permission_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
@@ -108,12 +117,9 @@ CREATE TABLE IF NOT EXISTS pm_session (
     ,user_id UUID
 
     ,CONSTRAINT pm_session_session_hash_pkey PRIMARY KEY (session_hash)
-    ,CONSTRAINT pm_session_site_id_user_id_fkey FOREIGN KEY (site_id, user_id) REFERENCES pm_user_authz (site_id, user_id)
     ,CONSTRAINT pm_session_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
     ,CONSTRAINT pm_session_user_id_fkey FOREIGN KEY (user_id) REFERENCES pm_user (user_id)
 );
-
-CREATE INDEX IF NOT EXISTS pm_session_site_id_user_id_idx ON pm_session (site_id, user_id);
 
 CREATE INDEX IF NOT EXISTS pm_session_site_id_idx ON pm_session (site_id);
 
