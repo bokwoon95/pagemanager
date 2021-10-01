@@ -56,15 +56,21 @@ type Bundle struct {
 
 // ooh, we can have a template cache keyed by the filepath. Then instead of parsing the same template multiple times we can just stitch the already-parsed templates together.
 
-type Handler interface{
+type Handler interface {
 	Name() string
 	ConfigSchema() *hujson.Object
 	Handler(config *hujson.Object) (http.Handler, error)
 }
 
-type Plugin interface{
+type Middleware interface {
+	Name() string
+	Middleware() func(http.Handler) http.Handler // does this need config *hujson.Object?
+}
+
+type Plugin interface {
 	Name() string
 	Handlers() []Handler
+	Middlewares() []Middleware
 }
 
 type FS struct {
@@ -81,6 +87,21 @@ func (tmplsFS *FS) ServeAssets(next http.Handler) http.Handler {
 			return
 		}
 	})
+}
+
+type PageHandler struct {
+	*FS
+}
+
+func (h *PageHandler) Name() string { return "page" }
+
+func (h *PageHandler) ConfigSchema() *hujson.Object {
+	return &hujson.Object{}
+}
+
+func (h *PageHandler) Handler(config *hujson.Object) (http.Handler, error) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	}), nil
 }
 
 // pm.RegisterHandlers(handlers ...Handler)
