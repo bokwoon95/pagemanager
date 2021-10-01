@@ -36,9 +36,7 @@ CREATE INDEX IF NOT EXISTS pm_template_data_site_id_idx ON pm_template_data (sit
 CREATE TABLE IF NOT EXISTS pm_user (
     user_id UUID
     ,email TEXT
-    ,nickname TEXT
     ,name TEXT
-    ,password_hash TEXT
 
     ,CONSTRAINT pm_user_user_id_pkey PRIMARY KEY (user_id)
     ,CONSTRAINT pm_user_email_key UNIQUE (email)
