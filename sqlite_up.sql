@@ -1,13 +1,14 @@
 CREATE TABLE IF NOT EXISTS pm_site (
     site_id UUID
-    ,domain TEXT
-    ,subdomain TEXT
+    ,domain TEXT NOT NULL
+    ,subdomain TEXT NOT NULL
+    ,path_prefix TEXT NOT NULL
 
     ,CONSTRAINT pm_site_site_id_pkey PRIMARY KEY (site_id)
-    ,CONSTRAINT pm_site_domain_subdomain_key UNIQUE (domain, subdomain)
+    ,CONSTRAINT pm_site_domain_subdomain_path_prefix_key UNIQUE (domain, subdomain, path_prefix)
 );
 
--- url -> domain, subdomain, langcode, path -> site_id, langcode, path
+-- url -> domain, subdomain, path_prefix, langcode, path -> site_id, langcode, path
 CREATE TABLE IF NOT EXISTS pm_url (
     site_id UUID
     ,path TEXT
@@ -100,6 +101,7 @@ CREATE TABLE IF NOT EXISTS pm_permission (
     site_id UUID
     ,role TEXT
     ,label TEXT -- e.g. pm_url (should this be its own separate table? pm_resource?)
+    --, label_params BLOB ?
     ,operation INT
 
     ,CONSTRAINT pm_permission_site_id_role_label_action_pkey PRIMARY KEY (site_id, role, label, action)

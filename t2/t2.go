@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/tailscale/hujson"
 )
 
 type any = interface{}
@@ -55,10 +56,20 @@ type Bundle struct {
 
 // ooh, we can have a template cache keyed by the filepath. Then instead of parsing the same template multiple times we can just stitch the already-parsed templates together.
 
+type Handler interface{
+	Name() string
+	ConfigSchema() *hujson.Object
+	Handler(config *hujson.Object) (http.Handler, error)
+}
+
+type Plugin interface{
+	Name() string
+	Handlers() []Handler
+}
+
 type FS struct {
 	siteMode      int // 0 - offline, 1 - singlesite, 2 - multisite
 	defaultSiteID uuid.UUID
-	multisite     bool
 	templates     fs.FS
 	uploads       fs.FS
 }
@@ -71,6 +82,9 @@ func (tmplsFS *FS) ServeAssets(next http.Handler) http.Handler {
 		}
 	})
 }
+
+// pm.RegisterHandlers(handlers ...Handler)
+// pm.RegisterPlugins()
 
 // /about-me?edit
 // /about-me?data=data/site.json
