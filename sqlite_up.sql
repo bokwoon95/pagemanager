@@ -35,16 +35,32 @@ CREATE INDEX IF NOT EXISTS pm_template_data_site_id_idx ON pm_template_data (sit
 
 CREATE TABLE IF NOT EXISTS pm_user (
     user_id UUID
-    ,username TEXT
     ,email TEXT
+    ,nickname TEXT
     ,name TEXT
     ,password_hash TEXT
 
     ,CONSTRAINT pm_user_user_id_pkey PRIMARY KEY (user_id)
-    -- if self-hosters ever want a unique repo of users per site, they have to remove these constraints manually
-    ,CONSTRAINT pm_user_username_key UNIQUE (username)
     ,CONSTRAINT pm_user_email_key UNIQUE (email)
 );
+
+-- nickname uniqueness is guaranteed only within a site itself
+
+CREATE TABLE IF NOT EXISTS pm_site_user (
+    site_id UUID
+    ,user_id UUID
+    ,username TEXT
+    ,password_hash TEXT
+
+    ,CONSTRAINT pm_site_user_site_id_user_id_pkey PRIMARY KEY (site_id, user_id)
+    ,CONSTRAINT pm_site_user_site_id_username_key UNIQUE (site_id, username)
+    ,CONSTRAINT pm_site_user_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
+    ,CONSTRAINT pm_site_user_user_id_fkey FOREIGN KEY (user_id) REFERENCES pm_user (user_id)
+);
+
+CREATE INDEX IF NOT EXISTS pm_site_user_site_id_idx ON pm_site_user (site_id);
+
+CREATE INDEX IF NOT EXISTS pm_site_user_user_id_idx ON pm_site_user (user_id);
 
 CREATE TABLE IF NOT EXISTS pm_role (
     site_id UUID
