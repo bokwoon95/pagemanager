@@ -8,15 +8,15 @@ CREATE TABLE IF NOT EXISTS pm_site (
     ,CONSTRAINT pm_site_domain_subdomain_path_prefix_key UNIQUE (domain, subdomain, path_prefix)
 );
 
--- url -> domain, subdomain, path_prefix, langcode, path -> site_id, langcode, path
+-- url (decomposes to ->) domain, subdomain, path_prefix, langcode, url_path (translates to ->) site_id, langcode, url_path
 CREATE TABLE IF NOT EXISTS pm_url (
     site_id UUID
-    ,path TEXT
+    ,url_path TEXT
     ,plugin TEXT
     ,handler TEXT
     ,params JSON
 
-    ,CONSTRAINT pm_url_site_id_path_pkey PRIMARY KEY (site_id, path)
+    ,CONSTRAINT pm_url_site_id_url_path_pkey PRIMARY KEY (site_id, url_path)
     ,CONSTRAINT pm_url_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
 );
 
@@ -96,6 +96,21 @@ CREATE INDEX IF NOT EXISTS pm_role_user_user_id ON pm_role_user (user_id);
 -- 10 (2) READ
 -- 100 (4) UPDATE
 -- 1000 (8) DELETE
+
+-- READ WRITE DELETE
+
+-- any object has an owner (user_id UUID) and object tags
+-- admins have CRUD to all objects within the website
+
+-- namespace:role
+-- namespace:object_tag
+-- namespace:object_tag:object_id
+
+-- there's a table that maps object types to object tags
+-- there's a table that maps objects to object types
+
+-- roles users object_types objects
+-- superadmin, admin
 
 CREATE TABLE IF NOT EXISTS pm_permission (
     site_id UUID

@@ -25,6 +25,7 @@ services:
       MYSQL_USER: 'mysql'
       MYSQL_PASSWORD: 'mysql'
       MYSQL_DATABASE: 'pagemanager'
+    platform: 'linux/amd64'
 
 volumes:
   postgres_data:

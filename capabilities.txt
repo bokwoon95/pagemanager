@@ -1,0 +1,19 @@
+== url level capabilities ==
+adminstrate_url
+edit_url_entries
+edit_handlers
+edit_handler_configs
+edit_single_handler
+edit_single_handler_config
+
+== site level capabilities ==
+administrate_roles
+administrate_tags
+assign_roles
+
+== roles ==
+superadmin: [ administrate_roles, administrate_tags ]
+admin: [ assign_roles ]
+
+urls associated with the url_dashboard handler are specially considered and isolated
+    because the moment you change the url of the url_dashboard handler, immediate attempts to view it again at the same URL will fail
