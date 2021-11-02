@@ -2,12 +2,14 @@ INSERT INTO pm_site
     (site_id, domain, subdomain, tilde_prefix)
 VALUES
     (x'11111111111111111111111111111111', '', '', '')
+ON CONFLICT DO NOTHING
 ;
 
 INSERT INTO pm_user
     (user_id)
 VALUES
     (x'11111111111111111111111111111111')
+ON CONFLICT DO NOTHING
 ;
 
 INSERT INTO pm_user_role
@@ -15,6 +17,7 @@ INSERT INTO pm_user_role
 VALUES
     (x'11111111111111111111111111111111', '', x'11111111111111111111111111111111', 'superadmin')
     ,(x'11111111111111111111111111111111', '', x'11111111111111111111111111111111', 'admin')
+ON CONFLICT DO NOTHING
 ;
 
 INSERT INTO pm_role_capability
@@ -23,6 +26,14 @@ VALUES
     (x'11111111111111111111111111111111', '', 'superadmin', 'administrate_tags')
     ,(x'11111111111111111111111111111111', '', 'superadmin', 'administrate_roles')
     ,(x'11111111111111111111111111111111', '', 'admin', 'assign_roles')
+ON CONFLICT DO NOTHING
+;
+
+INSERT INTO pm_url
+    (site_id, urlpath, plugin, handler, config)
+VALUES
+    (x'11111111111111111111111111111111', '/pm-url', '', 'url_dashboard', NULL)
+ON CONFLICT DO NOTHING
 ;
 
 INSERT INTO pm_url_role_capability
@@ -30,6 +41,7 @@ INSERT INTO pm_url_role_capability
 VALUES
     (x'11111111111111111111111111111111', '/', 'admin', 'administrate_url')
     ,(x'11111111111111111111111111111111', '/', 'admin', 'edit_url_entries')
+ON CONFLICT DO NOTHING
 ;
 
 -- get all the capabilities on url '/' for site_id = x'11111111111111111111111111111111' and user_id = x'11111111111111111111111111111111'
