@@ -85,6 +85,12 @@ CREATE TABLE IF NOT EXISTS pm_url (
 
 CREATE INDEX pm_url_site_id_idx ON pm_url (site_id);
 
+-- I don't have to index the plugin+handlers if I only ever insert the
+-- url_dashboard, template_dir handlers at site creation time. Then if the user
+-- deletes those entries it's up to them to figure out how to restore it back.
+-- The advantage is I no longer have to run sanity checks on every request,
+-- which can suck up a non-trivial amount of time.
+
 -- need administrate_url capability for that URL
 CREATE TABLE IF NOT EXISTS pm_url_role_capability (
     site_id UUID
