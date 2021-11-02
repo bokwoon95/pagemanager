@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS pm_user (
     user_id UUID
     ,email TEXT
     ,username TEXT
-    ,name TEXT
     ,password_hash TEXT
+    ,name TEXT
     ,created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     ,updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 

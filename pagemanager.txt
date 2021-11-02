@@ -14,6 +14,19 @@ offline, singlesite, multisite
 offline mode will use the default site and the first superadmin for the site (a new site_id and user_id will be created if it doesn't exist)
 singlesite mode will use the default site but the user has to log in manually (and will be rejected if he doesn't have URL dashboard permissions)
 
+type URLInfo struct {
+    RawURL      string
+    Domain      string
+    Subdomain   string
+    TildePrefix string
+    Langcode    string
+    URLPath     string
+}
+
+pagemanager.CtxKeyURLInfo -> pagemanager.URLInfo
+pagemanager.CtxKeySiteID -> uuid.UUID
+pagamanager.CtxKeyUserID -> uuid.UUID
+
 if cookies are indeed scoped to each subdomain separately, there is no way to have a 'subscribe to blog' interface across all blogiverse sites. Because when they click on 'subscribe', there is no way for bob.blogiverse.io to know that the current user is alice because the session is only valid for alice.blogiverse.io.
     maybe all subscriptions are done by a HTTP call to the blogiverse.io domain (through a pop up window like when clicking on a facebook 'share' button). If the user currently has user cookies for the blogiverse.io domain the HTTP call would succeed and auto close, else it would present the user with a login menu (after which the user cookie would be set and subsequent calls to the /subscribe endpoint would automatically succeed)
 
