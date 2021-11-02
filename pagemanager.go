@@ -4,11 +4,22 @@ import (
 	"database/sql"
 	"io/fs"
 	"net/http"
+
+	"github.com/google/uuid"
+)
+
+type Sitemode int8
+
+const (
+	SitemodeOffline Sitemode = iota
+	SitemodeSinglesite
+	SitemodeMultisite
 )
 
 type Config struct {
-	DSN    string
-	RootFS fs.FS
+	Sitemode Sitemode
+	DSN      string
+	RootFS   fs.FS
 
 	// if empty, derive from DSN
 	DSNv2 string
@@ -24,6 +35,8 @@ func DefaultConfig() {
 }
 
 type Pagemanager struct {
+	sitemode    Sitemode
+	siteID      uuid.UUID
 	db          *sql.DB
 	db1         *sql.DB
 	db2         *sql.DB
