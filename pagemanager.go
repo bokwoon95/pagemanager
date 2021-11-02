@@ -49,7 +49,7 @@ type Pagemanager struct {
 	templatesFS fs.FS
 	uploadsFS   fs.FS
 	locales     map[string]string
-	plugins     map[[2]string]http.Handler
+	handlers    map[[2]string]http.Handler
 }
 
 func New(cfg *Config) (*Pagemanager, error) {
