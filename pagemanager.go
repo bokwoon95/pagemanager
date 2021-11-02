@@ -1,6 +1,7 @@
 package pagemanager
 
 import (
+	"context"
 	"database/sql"
 	"io/fs"
 	"net/http"
@@ -54,7 +55,31 @@ func New(cfg *Config) (*Pagemanager, error) {
 	return pm, nil
 }
 
+type URLInfo struct {
+	RawURL      string
+	Domain      string
+	Subdomain   string
+	TildePrefix string
+	Langcode    string
+	URLPath     string
+}
+
+type CtxKey int
+
+const (
+	CtxKeyURLInfo CtxKey = iota
+	CtxKeySiteID
+	CtxKeyUserID
+)
+
 func (pm *Pagemanager) Pagemanager(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// maybe stuff everything into one key for performance?
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, CtxKeyURLInfo, URLInfo{})
+		ctx = context.WithValue(ctx, CtxKeySiteID, uuid.UUID{})
+		ctx = context.WithValue(ctx, CtxKeyUserID, uuid.UUID{})
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
 	})
 }
