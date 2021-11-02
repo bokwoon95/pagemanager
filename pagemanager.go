@@ -30,6 +30,8 @@ type Config struct {
 	UploadsFS   fs.FS
 }
 
+// DefaultConfig looks at the environment and the flags passed to it and
+// deduces the SiteMode, DSN and RootFS from it.
 func DefaultConfig() *Config {
 	// -pm-secrets-file -pm-secrets-env
 	// contains: DSN, DSN2, DSN3
