@@ -18,6 +18,7 @@ singlesite mode will use the default site but the user has to log in manually (a
 /pm-uploads (dir) fs.FS
 /pm-uploads/pm-themes (dir) fs.FS
 /pm-plugins
+/locales.txt
 
 type URLInfo struct {
     RawURL      string

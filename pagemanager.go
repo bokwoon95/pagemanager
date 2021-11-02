@@ -29,9 +29,11 @@ type Config struct {
 	UploadsFS   fs.FS
 }
 
-func DefaultConfig() {
+func DefaultConfig() *Config {
 	// -pm-secrets-file -pm-secrets-env
 	// contains: DSN, DSN2, DSN3
+	cfg := &Config{}
+	return cfg
 }
 
 type Pagemanager struct {
@@ -43,6 +45,8 @@ type Pagemanager struct {
 	rootFS      fs.FS
 	templatesFS fs.FS
 	uploadsFS   fs.FS
+	locales     map[string]string
+	plugins     map[[2]string]http.Handler
 }
 
 func New(cfg *Config) (*Pagemanager, error) {
