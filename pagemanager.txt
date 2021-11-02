@@ -14,6 +14,11 @@ offline, singlesite, multisite
 offline mode will use the default site and the first superadmin for the site (a new site_id and user_id will be created if it doesn't exist)
 singlesite mode will use the default site but the user has to log in manually (and will be rejected if he doesn't have URL dashboard permissions)
 
+/pm-themes (dir) fs.FS
+/pm-uploads (dir) fs.FS
+/pm-uploads/pm-themes (dir) fs.FS
+/pm-plugins
+
 type URLInfo struct {
     RawURL      string
     Domain      string
