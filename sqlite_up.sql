@@ -2,40 +2,13 @@ CREATE TABLE IF NOT EXISTS pm_site (
     site_id UUID
     ,domain TEXT NOT NULL
     ,subdomain TEXT NOT NULL
-    ,path_prefix TEXT NOT NULL
+    ,tilde_prefix TEXT NOT NULL
+    ,created_at DATETIME DEFAULT CURRENT_TIMESTAMP -- earliest site is default site used in 'offline'
+    ,updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 
     ,CONSTRAINT pm_site_site_id_pkey PRIMARY KEY (site_id)
-    ,CONSTRAINT pm_site_domain_subdomain_path_prefix_key UNIQUE (domain, subdomain, path_prefix)
+    ,CONSTRAINT pm_site_domain_subdomain_tilde_prefix_key UNIQUE (domain, subdomain, tilde_prefix)
 );
-
--- url (decomposes to ->) domain, subdomain, path_prefix, langcode, url_path (translates to ->) site_id, langcode, url_path
-CREATE TABLE IF NOT EXISTS pm_url (
-    site_id UUID
-    ,url_path TEXT
-    ,plugin TEXT
-    ,handler TEXT
-    ,params JSON
-
-    ,CONSTRAINT pm_url_site_id_url_path_pkey PRIMARY KEY (site_id, url_path)
-    ,CONSTRAINT pm_url_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
-);
-
-CREATE INDEX IF NOT EXISTS pm_url_site_id_idx ON pm_url (site_id);
-
-CREATE TABLE IF NOT EXISTS pm_template_data (
-    site_id UUID
-    ,langcode TEXT
-    ,data_file TEXT
-    ,data JSON
-
-    ,CONSTRAINT pm_template_data_site_id_langcode_data_file_pkey PRIMARY KEY (site_id, langcode, data_file)
-    ,CONSTRAINT pm_template_data_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
-);
-
-CREATE INDEX IF NOT EXISTS pm_template_data_site_id_idx ON pm_template_data (site_id);
-
--- /user/$username-$base32_user_id
--- only $base32_user_id is used to lookup. If the $username doesn't match, initiate a redirect.
 
 CREATE TABLE IF NOT EXISTS pm_user (
     user_id UUID
@@ -43,101 +16,108 @@ CREATE TABLE IF NOT EXISTS pm_user (
     ,username TEXT
     ,name TEXT
     ,password_hash TEXT
+    ,created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ,updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 
     ,CONSTRAINT pm_user_user_id_pkey PRIMARY KEY (user_id)
     ,CONSTRAINT pm_user_email_key UNIQUE (email)
 );
 
--- username is not unique by default: it is up to plugins to decide whether they want to enforce username uniqueness on a global level or on a site level.
-
--- pm_site_user is only used if the plugin requires maintaining a separate list of users per site. A plugin can always treat the entirety of pm_user as the site's install base.
+-- up to the plugin whether they want to use this table
 CREATE TABLE IF NOT EXISTS pm_site_user (
     site_id UUID
     ,user_id UUID
 
-    ,CONSTRAINT pm_site_user_site_id_user_id_pkey PRIMARY KEY (site_id, user_id)
-    ,CONSTRAINT pm_site_user_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
-    ,CONSTRAINT pm_site_user_user_id_fkey FOREIGN KEY (user_id) REFERENCES pm_user (user_id)
+    ,CONSTRAINT pm_site_user_pkey PRIMARY KEY (site_id, user_id)
 );
 
-CREATE INDEX IF NOT EXISTS pm_site_user_site_id_idx ON pm_site_user (site_id);
-
-CREATE INDEX IF NOT EXISTS pm_site_user_user_id_idx ON pm_site_user (user_id);
-
-CREATE TABLE IF NOT EXISTS pm_role (
+-- need assign_roles
+CREATE TABLE IF NOT EXISTS pm_user_role (
     site_id UUID
-    ,role TEXT
-
-    ,CONSTRAINT pm_role_site_id_role PRIMARY KEY (site_id, role)
-    ,CONSTRAINT pm_role_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
-);
-
-CREATE INDEX IF NOT EXISTS pm_role_site_id_idx ON pm_role (site_id);
-
-CREATE TABLE IF NOT EXISTS pm_role_user (
-    site_id UUID
-    ,role TEXT
+    ,plugin TEXT
     ,user_id UUID
-
-    ,CONSTRAINT pm_role_user_site_id_role_user_id_pkey PRIMARY KEY (site_id, role, user_id)
-    ,CONSTRAINT pm_role_user_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
-    ,CONSTRAINT pm_role_user_user_id_fkey FOREIGN KEY (user_id) REFERENCES pm_user (user_id)
-);
-
-CREATE INDEX IF NOT EXISTS pm_role_user_site_id ON pm_role_user (site_id);
-
-CREATE INDEX IF NOT EXISTS pm_role_user_user_id ON pm_role_user (user_id);
-
--- 0000 CRUD
--- 1111 15
--- 0100 4
-
--- 1 (1) CREATE
--- 10 (2) READ
--- 100 (4) UPDATE
--- 1000 (8) DELETE
-
--- READ WRITE DELETE
-
--- any object has an owner (user_id UUID) and object tags
--- admins have CRUD to all objects within the website
-
--- namespace:role
--- namespace:object_tag
--- namespace:object_tag:object_id
-
--- there's a table that maps object types to object tags
--- there's a table that maps objects to object types
-
--- roles users object_types objects
--- superadmin, admin
-
-CREATE TABLE IF NOT EXISTS pm_permission (
-    site_id UUID
     ,role TEXT
-    ,label TEXT -- e.g. pm_url (should this be its own separate table? pm_resource?)
-    --, label_params BLOB ?
-    ,operation INT
 
-    ,CONSTRAINT pm_permission_site_id_role_label_action_pkey PRIMARY KEY (site_id, role, label, action)
-    ,CONSTRAINT pm_permission_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
-    ,CONSTRAINT pm_permission_site_id_role_fkey FOREIGN KEY (site_id, role) REFERENCES pm_role (site_id, role)
+    ,CONSTRAINT pm_user_role_site_id_plugin_user_id_role_pkey PRIMARY KEY (site_id, plugin, user_id, role)
 );
 
-CREATE INDEX IF NOT EXISTS pm_permission_site_id_idx ON pm_permission (site_id);
+-- need administrate_roles
+CREATE TABLE IF NOT EXISTS pm_role_capability (
+    site_id UUID
+    ,plugin TEXT
+    ,role TEXT
+    ,capability TEXT
 
-CREATE INDEX IF NOT EXISTS pm_permission_site_id_role_idx ON pm_permission (site_id, role);
+    ,CONSTRAINT pm_role_capability_site_id_plugin_role_capability PRIMARY KEY (site_id, plugin, role, capability)
+);
 
+-- need administrate_tags
+CREATE TABLE IF NOT EXISTS pm_tag_capability (
+    site_id UUID
+    ,plugin TEXT
+    ,tag TEXT
+    ,role TEXT
+    ,capability TEXT NOT NULL
+
+    ,CONSTRAINT pm_tag_capability_site_id_plugin_tag_role_pkey PRIMARY KEY (site_id, plugin, tag, role)
+);
+
+-- need administrate_tags
+CREATE TABLE IF NOT EXISTS pm_tag_owner (
+    site_id UUID
+    ,plugin TEXT
+    ,tag TEXT
+    ,role TEXT
+
+    ,CONSTRAINT pm_tag_owner_site_id_plugin_tag_role_pkey PRIMARY KEY (site_id, plugin, tag, role)
+);
+
+-- need edit_url_entries/edit_handlers/edit_handler_configs for that URL
+CREATE TABLE IF NOT EXISTS pm_url (
+    site_id UUID
+    ,urlpath TEXT
+    ,plugin TEXT NOT NULL
+    ,handler TEXT NOT NULL
+    ,config JSON
+
+    ,CONSTRAINT pm_url_site_id_urlpath_pkey PRIMARY KEY (site_id, urlpath)
+);
+
+CREATE INDEX pm_url_site_id_idx ON pm_url (site_id);
+
+-- need administrate_url capability for that URL
+CREATE TABLE IF NOT EXISTS pm_url_role_capability (
+    site_id UUID
+    ,urlpath TEXT
+    ,role TEXT
+    ,capability TEXT
+
+    ,CONSTRAINT pm_url_role_capability_site_id_urlpath_role_capability_pkey PRIMARY KEY (site_id, urlpath, role, capability)
+);
+
+-- need administrate_url capability for that URL
+CREATE TABLE IF NOT EXISTS pm_url_tag (
+    site_id UUID
+    ,urlpath TEXT
+    ,tag TEXT
+
+    ,CONSTRAINT pm_url_tag_site_id_urlpath_tag_pkey PRIMARY KEY (site_id, urlpath, tag)
+);
+
+-- handled by plugin
+CREATE TABLE IF NOT EXISTS pm_template_data (
+    site_id UUID
+    ,langcode TEXT
+    ,data_file TEXT
+    ,data JSON
+
+    ,CONSTRAINT pm_template_data_site_id_langcode_data_file_pkey PRIMARY KEY (site_id, langcode, data_file)
+);
+
+-- handled by application
 CREATE TABLE IF NOT EXISTS pm_session (
     session_hash BLOB
-    ,site_id UUID
-    ,user_id UUID
+    ,user_id UUID NOT NULL
 
     ,CONSTRAINT pm_session_session_hash_pkey PRIMARY KEY (session_hash)
-    ,CONSTRAINT pm_session_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id)
-    ,CONSTRAINT pm_session_user_id_fkey FOREIGN KEY (user_id) REFERENCES pm_user (user_id)
 );
-
-CREATE INDEX IF NOT EXISTS pm_session_site_id_idx ON pm_session (site_id);
-
-CREATE INDEX IF NOT EXISTS pm_session_user_id_idx ON pm_session (user_id);

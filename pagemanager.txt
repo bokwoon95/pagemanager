@@ -8,6 +8,9 @@ site_id.user_id.session_id.signature
 
 for singlesite and multisite, setting PM_SECRET_KEY is mandatory
 
+offline, singlesite, multisite
+if you start the application in offline mode
+
 if cookies are indeed scoped to each subdomain separately, there is no way to have a 'subscribe to blog' interface across all blogiverse sites. Because when they click on 'subscribe', there is no way for bob.blogiverse.io to know that the current user is alice because the session is only valid for alice.blogiverse.io.
 
 given a filename, the mechanism in which the templates plugin retrieves the json config should be abstracted away behind an interface. This allows it to possibly make a network call to retrieve the config instead.
