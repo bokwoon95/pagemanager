@@ -1,3 +1,4 @@
+-- handled by primary site
 CREATE TABLE IF NOT EXISTS pm_site (
     site_id UUID
     ,domain TEXT NOT NULL
@@ -10,6 +11,7 @@ CREATE TABLE IF NOT EXISTS pm_site (
     ,CONSTRAINT pm_site_is_primary_key UNIQUE (is_primary)
 );
 
+-- handled by primary site
 CREATE TABLE IF NOT EXISTS pm_user (
     user_id UUID
     ,email TEXT

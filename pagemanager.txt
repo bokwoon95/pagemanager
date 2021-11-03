@@ -20,6 +20,11 @@ singlesite mode will use the default site but the user has to log in manually (a
 /pm-plugins
 /locales.txt
 
+DSNMetadata pm_site, pm_user, pm_session
+DSN
+DSN2
+DSN3
+
 type URLInfo struct {
     RawURL      string
     Domain      string
