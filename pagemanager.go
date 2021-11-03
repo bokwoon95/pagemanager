@@ -49,7 +49,6 @@ type Pagemanager struct {
 	locales     map[string]string // read from locales.txt or a default
 	// Plugins
 	handlers     map[[2]string]http.Handler     // plugin.handler -> http.Handler
-	roles        map[string]map[string]struct{} // plugin -> role -> struct{}
 	capabilities map[string]map[string]struct{} // plugin -> capability -> struct{}
 }
 
