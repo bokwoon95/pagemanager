@@ -7,3 +7,6 @@ methods plugins need:
 if a capability contains a '.' it will be excluded as a site-level capability
 this means that all site-level capabilities can only use dashes e.g. administrate-roles
 this encourages plugins to prefix object-level capabilities with the object name followed by a dot e.g. url.administrate
+
+plugin names are their repo URLs, and will be a separate column instead of being integrated with the role/tag/capability
+it's unfortunate that this means that plugin tables will not be able to reference the pm_role/pm_tag table (because foreign keys cannot contain literal values) but it's a design tradeoff I'm making. I want the plugin name to be the repo URL, and everything follows.
