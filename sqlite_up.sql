@@ -11,6 +11,19 @@ CREATE TABLE IF NOT EXISTS pm_site (
     ,CONSTRAINT pm_site_is_primary_key UNIQUE (is_primary)
 );
 
+CREATE TABLE IF NOT EXISTS pm_site_plugin (
+    plugin TEXT
+    ,allowed_sites JSON
+    ,denied_sites JSON
+);
+
+CREATE TABLE IF NOT EXISTS pm_site_handler (
+    plugin TEXT
+    ,handler TEXT
+    ,allowed_sites JSON
+    ,denied_sites JSON
+);
+
 -- handled by primary site
 CREATE TABLE IF NOT EXISTS pm_user (
     user_id UUID
