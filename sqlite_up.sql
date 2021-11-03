@@ -46,11 +46,11 @@ CREATE TABLE IF NOT EXISTS pm_user (
 );
 
 CREATE TABLE IF NOT EXISTS pm_session (
-    session_hash BLOB
-    ,site_id UUID
+    site_id UUID
+    ,session_hash BLOB
     ,user_id UUID NOT NULL
 
-    ,CONSTRAINT pm_session_session_hash_pkey PRIMARY KEY (session_hash)
+    ,CONSTRAINT pm_session_site_id_session_hash_pkey PRIMARY KEY (site_id, session_hash)
     ,CONSTRAINT pm_session_site_id_user_id_fkey FOREIGN KEY (site_id, user_id) REFERENCES pm_user (site_id, user_id)
 );
 
