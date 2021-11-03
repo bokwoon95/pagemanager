@@ -25,6 +25,8 @@ DSN
 DSN2
 DSN3
 
+plugins, roles, capabilities, tags and handlers cannot have spaces. hence it is always possible to represent a fully qualified handler in a string, separated by space.
+
 type URLInfo struct {
     RawURL      string
     Domain      string
