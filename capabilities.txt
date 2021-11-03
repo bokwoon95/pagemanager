@@ -1,16 +1,16 @@
 == url level capabilities ==
 url.administrate
-url.edit_entries
-url.edit_handlers
-url.edit_handler_configs
-url.edit_single_handler
-url.edit_single_handler_config
+url.edit-entries
+url.edit-handlers
+url.edit-handler-configs
+url.edit-single-handler
+url.edit-single-handler-config
 
 == site level capabilities ==
-administrate_sites
-administrate_roles
-administrate_tags
-assign_roles
+administrate-sites
+administrate-roles
+administrate-tags
+assign-roles
 
 == roles ==
 superadmin: [ administrate_roles, administrate_tags ]
