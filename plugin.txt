@@ -1,0 +1,9 @@
+methods plugins need:
+- setup (for migration)
+- list of handlers
+- list of capabilities
+- list of default roles (with capabilities) (will be inserted into db on site creation)
+
+if a capability contains a '.' it will be excluded as a site-level capability
+this means that all site-level capabilities can only use dashes e.g. administrate-roles
+this encourages plugins to prefix object-level capabilities with the object name followed by a dot e.g. url.administrate

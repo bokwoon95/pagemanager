@@ -1,10 +1,10 @@
 == url level capabilities ==
 url.administrate
-url.edit-entries
-url.edit-handlers
-url.edit-handler-configs
-url.edit-single-handler
-url.edit-single-handler-config
+url.edit-all
+url.edit-all-handlers
+url.edit-all-handler-configs
+url.edit-handler
+url.edit-handler-config
 
 == site level capabilities ==
 administrate-sites

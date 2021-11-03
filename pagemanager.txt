@@ -25,6 +25,9 @@ DSN
 DSN2
 DSN3
 
+cookie name: pm_session_{site_id}
+fields: user_id, expire_at, name, username
+
 plugins, roles, capabilities, tags and handlers cannot have spaces. hence it is always possible to represent a fully qualified handler in a string, separated by space.
 
 to configure plugin access, the primary site admin will specify the whitelisted

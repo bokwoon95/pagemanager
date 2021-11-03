@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"io/fs"
 	"net/http"
-
-	"github.com/google/uuid"
 )
 
 type Sitemode int8
@@ -41,15 +39,18 @@ func DefaultConfig() *Config {
 
 type Pagemanager struct {
 	sitemode    Sitemode
-	siteID      uuid.UUID
+	siteID      [16]byte
 	db          *sql.DB
 	db1         *sql.DB
 	db2         *sql.DB
 	rootFS      fs.FS
 	templatesFS fs.FS
 	uploadsFS   fs.FS
-	locales     map[string]string
-	handlers    map[[2]string]http.Handler
+	locales     map[string]string // read from locales.txt or a default
+	// Plugins
+	handlers     map[[2]string]http.Handler     // plugin.handler -> http.Handler
+	roles        map[string]map[string]struct{} // plugin -> role -> struct{}
+	capabilities map[string]map[string]struct{} // plugin -> capability -> struct{}
 }
 
 func New(cfg *Config) (*Pagemanager, error) {
@@ -79,8 +80,8 @@ func (pm *Pagemanager) Pagemanager(next http.Handler) http.Handler {
 		// maybe stuff everything into one key for performance?
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, CtxKeyURLInfo, URLInfo{})
-		ctx = context.WithValue(ctx, CtxKeySiteID, uuid.UUID{})
-		ctx = context.WithValue(ctx, CtxKeyUserID, uuid.UUID{})
+		ctx = context.WithValue(ctx, CtxKeySiteID, [16]byte{})
+		ctx = context.WithValue(ctx, CtxKeyUserID, [16]byte{})
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})

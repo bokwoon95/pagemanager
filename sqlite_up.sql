@@ -1,4 +1,4 @@
--- handled by primary site
+-- need administrate-sites
 CREATE TABLE IF NOT EXISTS pm_site (
     site_id UUID
     ,domain TEXT NOT NULL
@@ -11,52 +11,52 @@ CREATE TABLE IF NOT EXISTS pm_site (
     ,CONSTRAINT pm_site_is_primary_key UNIQUE (is_primary)
 );
 
--- handled by primary site
+-- need administrate-sites
 CREATE TABLE IF NOT EXISTS pm_site_plugin (
     plugin TEXT
     ,allowed_sites JSON
     ,denied_sites JSON
+
+    ,CONSTRAINT pm_site_plugin_pkey PRIMARY KEY (plugin)
 );
 
--- handled by primary site
+-- need administrate-sites
 CREATE TABLE IF NOT EXISTS pm_site_handler (
     plugin TEXT
     ,handler TEXT
     ,allowed_sites JSON
     ,denied_sites JSON
+
+    ,CONSTRAINT pm_site_handler_plugin_handler_pkey PRIMARY KEY (plugin, handler)
 );
 
 CREATE TABLE IF NOT EXISTS pm_user (
-    user_id UUID
-    ,email TEXT
+    site_id UUID
+    ,user_id UUID
+    ,name TEXT
+    ,username TEXT NOT NULL
+    ,email TEXT NOT NULL
     ,password_hash TEXT
     ,reset_password_token TEXT
     ,reset_password_sent_at DATETIME
 
-    ,CONSTRAINT pm_user_user_id_pkey PRIMARY KEY (user_id)
-    ,CONSTRAINT pm_user_email_key UNIQUE (email)
+    ,CONSTRAINT pm_user_site_id_user_id_pkey PRIMARY KEY (site_id, user_id)
+    ,CONSTRAINT pm_user_site_id_username_key UNIQUE (site_id, username)
+    ,CONSTRAINT pm_user_site_id_email_key UNIQUE (site_id, email)
 );
 
 CREATE TABLE IF NOT EXISTS pm_session (
     session_hash BLOB
+    ,site_id UUID
     ,user_id UUID NOT NULL
 
     ,CONSTRAINT pm_session_session_hash_pkey PRIMARY KEY (session_hash)
-    ,CONSTRAINT pm_session_user_id_fkey FOREIGN KEY (user_id) REFERENCES pm_user (user_id)
+    ,CONSTRAINT pm_session_site_id_user_id_fkey FOREIGN KEY (site_id, user_id) REFERENCES pm_user (site_id, user_id)
 );
 
-CREATE INDEX pm_session_user_id_idx ON pm_session (user_id);
+CREATE INDEX pm_session_site_id_user_id_idx ON pm_session (site_id, user_id);
 
-CREATE TABLE IF NOT EXISTS pm_site_user (
-    site_id UUID
-    ,user_id UUID
-    ,username TEXT
-    ,name TEXT
-
-    ,CONSTRAINT pm_site_user_pkey PRIMARY KEY (site_id, user_id)
-);
-
--- need assign_roles
+-- need assign-roles
 CREATE TABLE IF NOT EXISTS pm_user_role (
     site_id UUID
     ,plugin TEXT
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS pm_user_role (
     ,CONSTRAINT pm_user_role_site_id_plugin_user_id_role_pkey PRIMARY KEY (site_id, plugin, user_id, role)
 );
 
--- need administrate_roles
+-- need administrate-roles
 CREATE TABLE IF NOT EXISTS pm_role_capability (
     site_id UUID
     ,plugin TEXT
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS pm_role_capability (
     ,CONSTRAINT pm_role_capability_site_id_plugin_role_capability PRIMARY KEY (site_id, plugin, role, capability)
 );
 
--- need administrate_tags
+-- need administrate-tags
 CREATE TABLE IF NOT EXISTS pm_tag_capability (
     site_id UUID
     ,plugin TEXT
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS pm_tag_capability (
     ,CONSTRAINT pm_tag_capability_site_id_plugin_tag_role_pkey PRIMARY KEY (site_id, plugin, tag, role)
 );
 
--- need administrate_tags
+-- need administrate-tags
 CREATE TABLE IF NOT EXISTS pm_tag_owner (
     site_id UUID
     ,plugin TEXT
@@ -97,7 +97,8 @@ CREATE TABLE IF NOT EXISTS pm_tag_owner (
     ,CONSTRAINT pm_tag_owner_site_id_plugin_tag_role_pkey PRIMARY KEY (site_id, plugin, tag, role)
 );
 
--- need edit_url_entries/edit_handlers/edit_handler_configs for that URL
+-- need url.edit-all or url.edit-all-handlers or url.edit-all-handler-configs
+-- for the corresponding URL
 CREATE TABLE IF NOT EXISTS pm_url (
     site_id UUID
     ,urlpath TEXT
@@ -110,13 +111,7 @@ CREATE TABLE IF NOT EXISTS pm_url (
 
 CREATE INDEX pm_url_site_id_idx ON pm_url (site_id);
 
--- I don't have to index the plugin+handlers if I only ever insert the
--- url_dashboard, template_dir handlers at site creation time. Then if the user
--- deletes those entries it's up to them to figure out how to restore it back.
--- The advantage is I no longer have to run sanity checks on every request,
--- which can suck up a non-trivial amount of time.
-
--- need administrate_url capability for that URL
+-- need url.administrate capability for the corresponding URL
 CREATE TABLE IF NOT EXISTS pm_url_role_capability (
     site_id UUID
     ,urlpath TEXT
@@ -126,7 +121,7 @@ CREATE TABLE IF NOT EXISTS pm_url_role_capability (
     ,CONSTRAINT pm_url_role_capability_site_id_urlpath_role_capability_pkey PRIMARY KEY (site_id, urlpath, role, capability)
 );
 
--- need administrate_url capability for that URL
+-- need url.administrate capability for the corresponding URL
 CREATE TABLE IF NOT EXISTS pm_url_tag (
     site_id UUID
     ,urlpath TEXT
@@ -135,7 +130,7 @@ CREATE TABLE IF NOT EXISTS pm_url_tag (
     ,CONSTRAINT pm_url_tag_site_id_urlpath_tag_pkey PRIMARY KEY (site_id, urlpath, tag)
 );
 
--- handled by plugin
+-- handled by pagemanager/blog
 CREATE TABLE IF NOT EXISTS pm_template_data (
     site_id UUID
     ,langcode TEXT

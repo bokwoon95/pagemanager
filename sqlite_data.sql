@@ -6,9 +6,9 @@ ON CONFLICT DO NOTHING
 ;
 
 INSERT INTO pm_user
-    (user_id)
+    (site_id, user_id, username, email)
 VALUES
-    (x'11111111111111111111111111111111')
+    (x'11111111111111111111111111111111', x'11111111111111111111111111111111', 'superadmin', 'superadmin@email.com')
 ON CONFLICT DO NOTHING
 ;
 
