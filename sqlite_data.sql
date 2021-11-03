@@ -1,7 +1,7 @@
 INSERT INTO pm_site
-    (site_id, domain, subdomain, tilde_prefix)
+    (site_id, domain, subdomain, tilde_prefix, is_primary)
 VALUES
-    (x'11111111111111111111111111111111', '', '', '')
+    (x'11111111111111111111111111111111', '', '', '', TRUE)
 ON CONFLICT DO NOTHING
 ;
 

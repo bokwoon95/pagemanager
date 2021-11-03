@@ -3,11 +3,11 @@ CREATE TABLE IF NOT EXISTS pm_site (
     ,domain TEXT NOT NULL
     ,subdomain TEXT NOT NULL
     ,tilde_prefix TEXT NOT NULL
-    ,created_at DATETIME DEFAULT CURRENT_TIMESTAMP -- earliest site is default site used in 'offline'
-    ,updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ,is_primary BOOLEAN DEFAULT NULL
 
     ,CONSTRAINT pm_site_site_id_pkey PRIMARY KEY (site_id)
     ,CONSTRAINT pm_site_domain_subdomain_tilde_prefix_key UNIQUE (domain, subdomain, tilde_prefix)
+    ,CONSTRAINT pm_site_is_primary_key UNIQUE (is_primary)
 );
 
 CREATE TABLE IF NOT EXISTS pm_user (
@@ -16,8 +16,6 @@ CREATE TABLE IF NOT EXISTS pm_user (
     ,username TEXT
     ,password_hash TEXT
     ,name TEXT
-    ,created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    ,updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 
     ,CONSTRAINT pm_user_user_id_pkey PRIMARY KEY (user_id)
     ,CONSTRAINT pm_user_email_key UNIQUE (email)
