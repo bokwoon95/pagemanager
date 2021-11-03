@@ -21,6 +21,17 @@ CREATE TABLE IF NOT EXISTS pm_user (
     ,CONSTRAINT pm_user_email_key UNIQUE (email)
 );
 
+-- handled by application
+CREATE TABLE IF NOT EXISTS pm_session (
+    session_hash BLOB
+    ,user_id UUID NOT NULL
+
+    ,CONSTRAINT pm_session_session_hash_pkey PRIMARY KEY (session_hash)
+    ,CONSTRAINT pm_session_user_id_fkey FOREIGN KEY (user_id) REFERENCES pm_user (user_id)
+);
+
+CREATE INDEX pm_session_user_id_idx ON pm_session (user_id);
+
 -- up to the plugin whether they want to use this table
 CREATE TABLE IF NOT EXISTS pm_site_user (
     site_id UUID
@@ -116,12 +127,4 @@ CREATE TABLE IF NOT EXISTS pm_template_data (
     ,data JSON
 
     ,CONSTRAINT pm_template_data_site_id_langcode_data_file_pkey PRIMARY KEY (site_id, langcode, data_file)
-);
-
--- handled by application
-CREATE TABLE IF NOT EXISTS pm_session (
-    session_hash BLOB
-    ,user_id UUID NOT NULL
-
-    ,CONSTRAINT pm_session_session_hash_pkey PRIMARY KEY (session_hash)
 );
