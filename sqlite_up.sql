@@ -11,12 +11,14 @@ CREATE TABLE IF NOT EXISTS pm_site (
     ,CONSTRAINT pm_site_is_primary_key UNIQUE (is_primary)
 );
 
+-- handled by primary site
 CREATE TABLE IF NOT EXISTS pm_site_plugin (
     plugin TEXT
     ,allowed_sites JSON
     ,denied_sites JSON
 );
 
+-- handled by primary site
 CREATE TABLE IF NOT EXISTS pm_site_handler (
     plugin TEXT
     ,handler TEXT
@@ -24,19 +26,17 @@ CREATE TABLE IF NOT EXISTS pm_site_handler (
     ,denied_sites JSON
 );
 
--- handled by primary site
 CREATE TABLE IF NOT EXISTS pm_user (
     user_id UUID
     ,email TEXT
-    ,username TEXT
     ,password_hash TEXT
-    ,name TEXT
+    ,reset_password_token TEXT
+    ,reset_password_sent_at DATETIME
 
     ,CONSTRAINT pm_user_user_id_pkey PRIMARY KEY (user_id)
     ,CONSTRAINT pm_user_email_key UNIQUE (email)
 );
 
--- handled by application
 CREATE TABLE IF NOT EXISTS pm_session (
     session_hash BLOB
     ,user_id UUID NOT NULL
@@ -47,10 +47,11 @@ CREATE TABLE IF NOT EXISTS pm_session (
 
 CREATE INDEX pm_session_user_id_idx ON pm_session (user_id);
 
--- up to the plugin whether they want to use this table
 CREATE TABLE IF NOT EXISTS pm_site_user (
     site_id UUID
     ,user_id UUID
+    ,username TEXT
+    ,name TEXT
 
     ,CONSTRAINT pm_site_user_pkey PRIMARY KEY (site_id, user_id)
 );
