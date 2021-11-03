@@ -27,6 +27,10 @@ DSN3
 
 plugins, roles, capabilities, tags and handlers cannot have spaces. hence it is always possible to represent a fully qualified handler in a string, separated by space.
 
+to configure plugin access, the primary site admin will specify the whitelisted
+or blacklisted sites for each plugin. This is the easiest way to scale plugin
+permissions across millions of sites.
+
 type URLInfo struct {
     RawURL      string
     Domain      string
