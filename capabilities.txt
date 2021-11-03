@@ -13,7 +13,7 @@ administrate-tags
 assign-roles
 
 == roles ==
-superadmin: [ administrate_roles, administrate_tags ]
+superadmin: [ administrate_sites, administrate_roles, administrate_tags ]
 admin: [ assign_roles ]
 
 urls associated with the url_dashboard handler are specially considered and isolated
