@@ -22,16 +22,13 @@ const (
 )
 
 type Config struct {
-	Mode        Mode
-	DatabaseURL string
-	RootFS      fs.FS
-
-	// if empty, derive from DSN
+	Mode         Mode
+	DatabaseURL  string
 	DatabaseURL2 string
 	DatabaseURL3 string
-	// if nil, derive from RootFS
-	TemplatesFS fs.FS
-	UploadsFS   fs.FS
+	RootFS       fs.FS
+	TemplatesFS  fs.FS
+	UploadsFS    fs.FS
 }
 
 var (
