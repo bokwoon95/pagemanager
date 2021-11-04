@@ -1,4 +1,4 @@
--- need administrate-sites
+-- need pagemanager:administrate-sites capability
 CREATE TABLE pm_site (
     site_id UUID NOT NULL
     ,domain TEXT NOT NULL
@@ -43,7 +43,7 @@ CREATE TABLE pm_capability (
 
 CREATE INDEX pm_capability_plugin_idx ON pm_capability (plugin);
 
--- need administrate-sites
+-- need pagemanager:administrate-sites capability
 CREATE TABLE pm_allowed_plugin (
     plugin TEXT NOT NULL
     ,site_id UUID NOT NULL
@@ -57,7 +57,7 @@ CREATE INDEX pm_allowed_plugin_plugin_idx ON pm_allowed_plugin (plugin);
 
 CREATE INDEX pm_allowed_plugin_site_id_idx ON pm_allowed_plugin (site_id);
 
--- need administrate-sites
+-- need pagemanager:administrate-sites capability
 CREATE TABLE pm_denied_plugin (
     plugin TEXT NOT NULL
     ,site_id UUID NOT NULL
@@ -71,7 +71,7 @@ CREATE INDEX pm_denied_plugin_plugin_idx ON pm_denied_plugin (plugin);
 
 CREATE INDEX pm_denied_plugin_site_id_idx ON pm_denied_plugin (site_id);
 
--- need administrate-sites
+-- need pagemanager:administrate-sites capability
 CREATE TABLE pm_allowed_handler (
     plugin TEXT NOT NULL
     ,handler TEXT NOT NULL
@@ -86,7 +86,7 @@ CREATE INDEX pm_allowed_handler_plugin_handler_idx ON pm_allowed_handler (plugin
 
 CREATE INDEX pm_allowed_handler_site_id_idx ON pm_allowed_handler (site_id);
 
--- need administrate-sites
+-- need pagemanager:administrate-sites capability
 CREATE TABLE pm_denied_handler (
     plugin TEXT NOT NULL
     ,handler TEXT NOT NULL
@@ -101,7 +101,7 @@ CREATE INDEX pm_denied_handler_plugin_handler_idx ON pm_denied_handler (plugin, 
 
 CREATE INDEX pm_denied_handler_site_id_idx ON pm_denied_handler (site_id);
 
--- need administrate-roles
+-- need pagemanager:administrate-roles capability
 CREATE TABLE pm_role (
     site_id UUID NOT NULL
     ,plugin TEXT NOT NULL
@@ -116,7 +116,7 @@ CREATE INDEX pm_role_site_id_idx ON pm_role (site_id);
 
 CREATE INDEX pm_role_plugin_idx ON pm_role (plugin);
 
--- need administrate-tags
+-- need pagemanager:administrate-tags capability
 CREATE TABLE pm_tag (
     site_id UUID NOT NULL
     ,plugin TEXT NOT NULL
@@ -131,7 +131,7 @@ CREATE INDEX pm_tag_site_id_idx ON pm_tag (site_id);
 
 CREATE INDEX pm_tag_plugin_idx ON pm_tag (plugin);
 
--- need administrate-roles
+-- need pagemanager:administrate-roles capability
 CREATE TABLE pm_role_capability (
     site_id UUID NOT NULL
     ,plugin TEXT NOT NULL
@@ -147,7 +147,7 @@ CREATE INDEX pm_role_capability_site_id_plugin_role_idx ON pm_role_capability (s
 
 CREATE INDEX pm_role_capability_plugin_capability_idx ON pm_role_capability (plugin, capability);
 
--- need administrate-tags
+-- need pagemanager:administrate-tags capability
 CREATE TABLE pm_tag_capability (
     site_id UUID NOT NULL
     ,plugin TEXT NOT NULL
@@ -167,7 +167,7 @@ CREATE INDEX pm_tag_capability_site_id_plugin_role_idx ON pm_tag_capability (sit
 
 CREATE INDEX pm_tag_capability_plugin_capability_idx ON pm_tag_capability (plugin, capability);
 
--- need administrate-tags
+-- need pagemanager:administrate-tags capability
 CREATE TABLE pm_tag_owner (
     site_id UUID NOT NULL
     ,plugin TEXT NOT NULL
@@ -212,7 +212,7 @@ CREATE TABLE pm_session (
 
 CREATE INDEX pm_session_site_id_user_id_idx ON pm_session (site_id, user_id);
 
--- need assign-roles
+-- need pagemanager:assign-roles capability
 CREATE TABLE pm_user_role (
     site_id UUID NOT NULL
     ,user_id UUID NOT NULL
@@ -228,8 +228,9 @@ CREATE INDEX pm_user_role_site_id_user_id_fkey ON pm_user_role (site_id, user_id
 
 CREATE INDEX pm_user_role_site_id_plugin_role_idx ON pm_user_role (site_id, plugin, role);
 
--- need url.edit-all or url.edit-all-handlers or url.edit-all-handler-configs
--- for the corresponding URL
+-- need pagemanager:url.edit-all or pagemanager:url.edit-all-handlers or
+-- pagemanager:url.edit-all-handler-configs capability for the corresponding
+-- URL
 CREATE TABLE pm_url (
     site_id UUID NOT NULL
     ,urlpath TEXT NOT NULL
@@ -246,7 +247,7 @@ CREATE INDEX pm_url_site_id_idx ON pm_url (site_id);
 
 CREATE INDEX pm_url_plugin_handler_idx ON pm_url (plugin, handler);
 
--- need url.administrate capability for the corresponding URL
+-- need pagemanager:url.administrate capability for the corresponding URL
 CREATE TABLE pm_url_role_capability (
     site_id UUID NOT NULL
     ,urlpath TEXT NOT NULL
@@ -263,7 +264,7 @@ CREATE INDEX pm_url_role_capability_site_id_plugin_role_idx ON pm_url_role_capab
 
 CREATE INDEX pm_url_role_capability_plugin_capability_idx ON pm_url_role_capability (plugin, capability);
 
--- need url.administrate capability for the corresponding URL
+-- need pagemanager:url.administrate capability for the corresponding URL
 CREATE TABLE pm_url_tag (
     site_id UUID NOT NULL
     ,urlpath TEXT NOT NULL
