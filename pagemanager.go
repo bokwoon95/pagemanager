@@ -3,8 +3,13 @@ package pagemanager
 import (
 	"context"
 	"database/sql"
+	"flag"
+	"fmt"
 	"io/fs"
 	"net/http"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type Mode int
@@ -16,25 +21,53 @@ const (
 )
 
 type Config struct {
-	Sitemode Mode
-	DSN      string
-	RootFS   fs.FS
+	Sitemode    Mode
+	DatabaseURL string
+	RootFS      fs.FS
 
 	// if empty, derive from DSN
-	DSNv2 string
-	DSNv3 string
+	DatabaseURL2 string
+	DatabaseURL3 string
 	// if nil, derive from RootFS
 	TemplatesFS fs.FS
 	UploadsFS   fs.FS
 }
 
+var (
+	flagSecretsFile = flag.String("pm-secrets-file", "", "")
+	flagSecretsEnv  = flag.Bool("pm-secrets-env", false, "")
+)
+
 // DefaultConfig looks at the environment and the flags passed to it and
 // deduces the SiteMode, DSN and RootFS from it.
-func DefaultConfig() *Config {
+func DefaultConfig() (*Config, error) {
 	// -pm-secrets-file -pm-secrets-env
-	// contains: DSN, DSN2, DSN3
+	// contains: PM_DSN, PM_DSN2, PM_DSN3
 	cfg := &Config{}
-	return cfg
+	if *flagSecretsFile != "" {
+		f, err := os.Open(*flagSecretsFile)
+		if err != nil {
+			return nil, fmt.Errorf("opening %s: %w", *flagSecretsFile, err)
+		}
+		envMap, err := godotenv.Parse(f)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %s: %w", *flagSecretsFile, err)
+		}
+		cfg.DatabaseURL = envMap["PM_DATABASE_URL"]
+		cfg.DatabaseURL2 = envMap["PM_DATABASE_URL_2"]
+		cfg.DatabaseURL3 = envMap["PM_DATABASE_URL_3"]
+	} else if *flagSecretsEnv {
+		cfg.DatabaseURL = os.Getenv("PM_DATABASE_URL")
+		cfg.DatabaseURL2 = os.Getenv("PM_DATABASE_URL_2")
+		cfg.DatabaseURL3 = os.Getenv("PM_DATABASE_URL_3")
+	}
+	if cfg.DatabaseURL2 == "" {
+		cfg.DatabaseURL2 = cfg.DatabaseURL
+	}
+	if cfg.DatabaseURL3 == "" {
+		cfg.DatabaseURL3 = cfg.DatabaseURL
+	}
+	return cfg, nil
 }
 
 type Pagemanager struct {
