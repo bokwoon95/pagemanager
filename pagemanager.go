@@ -110,12 +110,13 @@ func DefaultConfig() (*Config, error) {
 	}
 
 	if cfg.DatabaseURL == "" {
-		sqliteFile := filepath.Join(rootDir, "pm-database.sqlite3")
+		sqliteFile := filepath.Join(rootDir, "pm-database.sqlite")
 		f, err := os.OpenFile(sqliteFile, os.O_CREATE, 0644)
 		if err != nil {
 			return nil, fmt.Errorf("os.OpenFile %s: %w", sqliteFile, err)
 		}
 		f.Close()
+		cfg.DatabaseDialect = "sqlite"
 		cfg.DatabaseURL = sqliteFile
 	}
 
