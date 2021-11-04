@@ -1,10 +1,9 @@
 $env:PM_SECRET_KEY = ''
 
-session_id.signature
+plugins control handlers and capabilities (and provide default roles)
+superadmins control roles and tags
 
-site_id.user_id.signature
-
-site_id.user_id.session_id.signature
+For absolute bursty traffic, each site is given the option to cache their url entries in memory to additionally avoid a database lookup. In-memory entries are updated whenever changes are made to the routes, so it's not like entries would become out of date.
 
 for singlesite and multisite, setting PM_SECRET_KEY is mandatory
 actually the only effect of not having PM_SCERET_KEY is that cookies cannot have user_id attached (to skip the pm_session lookup)

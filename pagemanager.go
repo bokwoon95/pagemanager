@@ -7,16 +7,16 @@ import (
 	"net/http"
 )
 
-type Sitemode int8
+type Mode int
 
 const (
-	SitemodeOffline Sitemode = iota
-	SitemodeSinglesite
-	SitemodeMultisite
+	ModeOffline Mode = iota
+	ModeSinglesite
+	ModeMultisite
 )
 
 type Config struct {
-	Sitemode Sitemode
+	Sitemode Mode
 	DSN      string
 	RootFS   fs.FS
 
@@ -38,7 +38,7 @@ func DefaultConfig() *Config {
 }
 
 type Pagemanager struct {
-	sitemode    Sitemode
+	mode        Mode
 	siteID      [16]byte
 	db          *sql.DB
 	db1         *sql.DB
