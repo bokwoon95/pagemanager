@@ -1,37 +1,33 @@
 $env:PM_SECRET_KEY = ''
-
-plugins control handlers and capabilities (and provide default roles)
-superadmins control roles and tags
+PM_SECRET_KEY is an optional parameter that, when provided, allows expire_at, user_id, username and name to be baked directly into the session cookie and save a trip to the database.
+If not provided, the application will simply lookup the session_id in the database everytime.
+session_id will always be hashed with blake2b into session_hash. that part doesn't need a secret key.
 
 For absolute bursty traffic, each site is given the option to cache their url entries in memory to additionally avoid a database lookup. In-memory entries are updated whenever changes are made to the routes, so it's not like entries would become out of date.
-
-for singlesite and multisite, setting PM_SECRET_KEY is mandatory
-actually the only effect of not having PM_SCERET_KEY is that cookies cannot have user_id attached (to skip the pm_session lookup)
-cookies don't need a secret key either, they just get one-way-hashed with blake2b
 
 offline, singlesite, multisite
 offline mode will use the default site and the first superadmin for the site (a new site_id and user_id will be created if it doesn't exist)
 singlesite mode will use the default site but the user has to log in manually (and will be rejected if he doesn't have URL dashboard permissions)
 
-/pm-themes (dir) fs.FS
-/pm-uploads (dir) fs.FS
-/pm-uploads/pm-themes (dir) fs.FS
+on server startup:
+- does primary site exist? If not create primary site (with blank domain/subdomain/tilde_prefix)
+
+if pagemanager:url-dashboard notices the user trying to delete a pagemanager:url-dashboard url entry, it will first check if there are other pagemanager:url-dashboard entries present before deleting. It will never delete the last url-dashboard entry because that's the only way to edit the site urls. If deleting the url-dashboard entry is a legitimate security move, it must be done directly in the database.
+
+/pm-themes (dir) fs.FS (readonly)
+/pm-uploads (dir) fs.FS (writeable, assert to os.File or an S3-API object)
+/pm-uploads/pm-themes (dir) fs.FS (readonly)
+/pm-sites (dir) fs.FS (writeable, assert to os.File or an S3-API object)
 /pm-plugins
 /locales.txt
 
-DSNMetadata pm_site, pm_user, pm_session
 DSN
 DSN2
 DSN3
 
 cookie name: pm_session_{site_id}
 fields: user_id, expire_at, name, username
-
-plugins, roles, capabilities, tags and handlers cannot have spaces. hence it is always possible to represent a fully qualified handler in a string, separated by space.
-
-to configure plugin access, the primary site admin will specify the whitelisted
-or blacklisted sites for each plugin. This is the easiest way to scale plugin
-permissions across millions of sites.
+this means that if you change the site_id (which you should never have a reason to do) all existing user cookies will be rendered invalid and they will have to login again (which is not a big deal).
 
 type URLInfo struct {
     RawURL      string
@@ -46,65 +42,10 @@ pagemanager.CtxKeyURLInfo -> pagemanager.URLInfo
 pagemanager.CtxKeySiteID -> uuid.UUID
 pagamanager.CtxKeyUserID -> uuid.UUID
 
-I don't really want to make /pm-template user configurable, because that means I'd have to lookup the database in order to figure out the correct resource path for every template rendered. Even fixing this variable at startup time sucks because if the user is allowed to change it I'd have to keep the in-memory copy in sync with the persisted copy. And what about the cases when there are multiple servers (multiple in memory copies) taking to one database (one persisted to disk copy)? They basically need to get synchronized and I'm afraid one of the network connections may fail leading to inconsistent in-memory copies across the servers.
+/pm-templates for serving pm-templates directory is a setting inside the template struct, but it can be changed by the user.
+However changing it after /pm-template has already been used runs the risk of breaking existing links that still reference /pm-templates.
 
 if cookies are indeed scoped to each subdomain separately, there is no way to have a 'subscribe to blog' interface across all blogiverse sites. Because when they click on 'subscribe', there is no way for bob.blogiverse.io to know that the current user is alice because the session is only valid for alice.blogiverse.io.
     maybe all subscriptions are done by a HTTP call to the blogiverse.io domain (through a pop up window like when clicking on a facebook 'share' button). If the user currently has user cookies for the blogiverse.io domain the HTTP call would succeed and auto close, else it would present the user with a login menu (after which the user cookie would be set and subsequent calls to the /subscribe endpoint would automatically succeed)
 
 given a filename, the mechanism in which the templates plugin retrieves the json config should be abstracted away behind an interface. This allows it to possibly make a network call to retrieve the config instead.
-
-Domain Objects
---------------
-- Sites
-- Users
-- URLs
-    - A site admin want to grant users access to only a subset of URLs
-
-Read
-Write
-ReadWrite
-
-0 00
-1 01
-2 10
-3 11
-
-Policies: Read
-
-Admins
-Users
-URLs
-
-Superadmins
-- Add users
-- Assign 'admin' and 'superadmin' role to users
-- Set access policies
-
-Admins
-- Add users
-- Assign roles (other than 'admin' or 'superadmin') to users
-- Read/Write access to the URL dashboard
-
-Users
-- Assign tags (owned by their roles) to objects they create
-    - The only objects right now are: Pages and Posts
-
-Objects: user, admin_role, role, url
-Object tags: user, admin_role, role, url
-Roles: superadmin, admin, user
-
-user.read: superadmin, admin
-user.write: superadmin, admin
-admin_role.read: superadmin
-admin_role.write: superadmin
-role.read: admin
-role.write: admin
-url.read: admin, user
-url.write: admin
-
-a theme is a collection of templates
-a plugin is a collection of handlers
-
-superadmin
-admin
-github.com/kathyp/shop:store-owner

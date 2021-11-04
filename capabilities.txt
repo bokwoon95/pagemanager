@@ -15,6 +15,3 @@ assign-roles
 == roles ==
 superadmin: [ administrate_sites, administrate_roles, administrate_tags ]
 admin: [ assign_roles ]
-
-urls associated with the url_dashboard handler are specially considered and isolated
-    because the moment you change the url of the url_dashboard handler, immediate attempts to view it again at the same URL will fail

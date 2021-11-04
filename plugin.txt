@@ -1,12 +1,29 @@
 methods plugins need:
 - setup (for migration)
+- plugin name, url and version
+    - on server startup:
+        - check if url and version already exist (if exist, return)
+        - check if name exist (if exist, append random hash to name)
+        - insert name, url, version
+    - superadmin of primary site is free to change the plugin name anytime, plugin will not interfere
 - list of handlers
+    - on server startup:
+        - insert handler names into db (on conflict do nothing)
+        - use SELECT and url+version in order to get the plugin name programatically
+    - register the plugin handlers under the plugin name (use SELECT with url+version)
 - list of capabilities
-- list of default roles (with capabilities) (will be inserted into db on site creation)
+    - on server startup:
+        - insert capabilities into db (on conflict do nothing)
+        - use SELECT and url+version in order to get the plugin name programatically
+- list of roles+capabilities
+    - on server startup:
+        - insert roles+capabilities into db (on conflict do nothing)
+        - use SELECT and url+version in order to get the plugin name programatically
+- list of middlewares
+    - this is how plugins like pagemanager/template are able to register the /pm-template endpoint without needing the user to do it
+
+plugins are free to add handlers/capabilities/roles without breaking version compatibility, as long as existing handlers/capabilities/roles are not affected (API is append-only).
 
 if a capability contains a '.' it will be excluded as a site-level capability
 this means that all site-level capabilities can only use dashes e.g. administrate-roles
 this encourages plugins to prefix object-level capabilities with the object name followed by a dot e.g. url.administrate
-
-plugin names are their repo URLs, and will be a separate column instead of being integrated with the role/tag/capability
-it's unfortunate that this means that plugin tables will not be able to reference the pm_role/pm_tag table (because foreign keys cannot contain literal values) but it's a design tradeoff I'm making. I want the plugin name to be the repo URL, and everything follows.
