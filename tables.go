@@ -57,10 +57,11 @@ type PM_DENIED_HANDLER struct {
 	PLUGIN  sq.StringField `ddl:"notnull postgres:collate=C"`
 	HANDLER sq.StringField `ddl:"notnull postgres:collate=C"`
 	SITE_ID sq.UUIDField   `ddl:"notnull references={pm_site.site_id onupdate=cascade} index"`
-	_       struct{}       `ddl:""` // TODO: facilitate this hacky workaround (in ddl) to stuff more annotations into a struct
-	_       struct{}       // anything that is not a field would get interpeted as a table-level constraint instead
-	_       struct{}       // so you can use virtual=fts5 in a non-field as well
-	_       struct{}       `ddl:"foreignkey={plugin,handler references=pm_handler.plugin,handler onupdate=cascade}"` // TODO
+
+	_ struct{} `ddl:""` // TODO: facilitate this hacky workaround (in ddl) to stuff more annotations into a struct
+	_ struct{} // anything that is not a field would get interpeted as a table-level constraint instead
+	_ struct{} // so you can use virtual=fts5 in a non-field as well
+	_ struct{} `ddl:"foreignkey={plugin,handler references=pm_handler.plugin,handler onupdate=cascade}"` // TODO
 }
 
 type PM_ROLE struct {
