@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/joho/godotenv"
 )
@@ -21,7 +22,7 @@ const (
 )
 
 type Config struct {
-	Sitemode    Mode
+	Mode        Mode
 	DatabaseURL string
 	RootFS      fs.FS
 
@@ -36,22 +37,70 @@ type Config struct {
 var (
 	flagSecretsFile = flag.String("pm-secrets-file", "", "")
 	flagSecretsEnv  = flag.Bool("pm-secrets-env", false, "")
+	flagRootDir     = flag.String("pm-root-dir", "", "")
+	flagMode        = flag.String("pm-mode", "", "")
 )
 
-// DefaultConfig looks at the environment and the flags passed to it and
-// deduces the SiteMode, DSN and RootFS from it.
+// DefaultConfig returns a default config for pagemanager based on the flags
+// passed to the application.
 func DefaultConfig() (*Config, error) {
-	// -pm-secrets-file -pm-secrets-env
-	// contains: PM_DSN, PM_DSN2, PM_DSN3
 	cfg := &Config{}
-	if *flagSecretsFile != "" {
-		f, err := os.Open(*flagSecretsFile)
+
+	switch *flagMode {
+	case "0", "":
+		cfg.Mode = ModeOffline
+	case "1", "singlesite":
+		cfg.Mode = ModeSinglesite
+	case "2", "multisite":
+		cfg.Mode = ModeMultisite
+	default:
+		return nil, fmt.Errorf("unrecognized mode: %s", *flagMode)
+	}
+
+	rootDir := *flagRootDir
+	if rootDir == "" {
+		homeDir, err := os.UserHomeDir()
 		if err != nil {
-			return nil, fmt.Errorf("opening %s: %w", *flagSecretsFile, err)
+			return nil, fmt.Errorf("os.UserHomeDir: %w", err)
 		}
-		envMap, err := godotenv.Parse(f)
+		rootDir = filepath.Join(homeDir, "pagemanager-data")
+	}
+	err := os.MkdirAll(rootDir, 0775)
+	if err != nil {
+		return nil, fmt.Errorf("os.MkDirAll %s: %w", rootDir, err)
+	}
+	cfg.RootFS = os.DirFS(rootDir)
+
+	templatesDir := filepath.Join(rootDir, "pm-templates")
+	err = os.MkdirAll(templatesDir, 0775)
+	if err != nil {
+		return nil, fmt.Errorf("os.MkDirAll %s: %w", templatesDir, err)
+	}
+	cfg.TemplatesFS = os.DirFS(templatesDir)
+
+	uploadsDir := filepath.Join(rootDir, "pm-uploads")
+	err = os.MkdirAll(uploadsDir, 0775)
+	if err != nil {
+		return nil, fmt.Errorf("os.MkDirAll %s: %w", uploadsDir, err)
+	}
+	cfg.UploadsFS = os.DirFS(uploadsDir)
+
+	if *flagSecretsFile != "" {
+		envMap := make(map[string]string)
+		err := func() error {
+			f, err := os.Open(*flagSecretsFile)
+			if err != nil {
+				return fmt.Errorf("opening %s: %w", *flagSecretsFile, err)
+			}
+			defer f.Close()
+			envMap, err = godotenv.Parse(f)
+			if err != nil {
+				return fmt.Errorf("parsing %s: %w", *flagSecretsFile, err)
+			}
+			return nil
+		}()
 		if err != nil {
-			return nil, fmt.Errorf("parsing %s: %w", *flagSecretsFile, err)
+			return nil, err
 		}
 		cfg.DatabaseURL = envMap["PM_DATABASE_URL"]
 		cfg.DatabaseURL2 = envMap["PM_DATABASE_URL_2"]
@@ -61,9 +110,21 @@ func DefaultConfig() (*Config, error) {
 		cfg.DatabaseURL2 = os.Getenv("PM_DATABASE_URL_2")
 		cfg.DatabaseURL3 = os.Getenv("PM_DATABASE_URL_3")
 	}
+
+	if cfg.DatabaseURL == "" {
+		sqliteFile := filepath.Join(rootDir, "pm-database.sqlite3")
+		f, err := os.OpenFile(sqliteFile, os.O_CREATE, 0644)
+		if err != nil {
+			return nil, fmt.Errorf("os.OpenFile %s: %w", sqliteFile, err)
+		}
+		f.Close()
+		cfg.DatabaseURL = sqliteFile
+	}
+
 	if cfg.DatabaseURL2 == "" {
 		cfg.DatabaseURL2 = cfg.DatabaseURL
 	}
+
 	if cfg.DatabaseURL3 == "" {
 		cfg.DatabaseURL3 = cfg.DatabaseURL
 	}
