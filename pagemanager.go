@@ -22,13 +22,14 @@ const (
 )
 
 type Config struct {
-	Mode         Mode
-	DatabaseURL  string
-	DatabaseURL2 string
-	DatabaseURL3 string
-	RootFS       fs.FS
-	TemplatesFS  fs.FS
-	UploadsFS    fs.FS
+	Mode            Mode
+	DatabaseDialect string
+	DatabaseURL     string
+	DatabaseURL2    string
+	DatabaseURL3    string
+	RootFS          fs.FS
+	TemplatesFS     fs.FS
+	UploadsFS       fs.FS
 }
 
 var (
