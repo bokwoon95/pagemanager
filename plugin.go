@@ -7,14 +7,14 @@ import (
 )
 
 type Plugin interface {
-	Setup(cfg *Config) error
 	DefaultName() string
 	URL() string
 	Version() string
-	Handlers() map[string]http.Handler
 	Capabilities() []string
 	Roles() map[string][]string
+	Setup(cfg *Config) error
 	Middleware() func(http.Handler) http.Handler
+	Handlers() map[string]http.Handler
 }
 
 var (
@@ -49,22 +49,11 @@ type pmPlugin struct{}
 
 var _ Plugin = (*pmPlugin)(nil)
 
-func (p *pmPlugin) Setup(cfg *Config) error {
-	return nil
-}
-
 func (p *pmPlugin) DefaultName() string { return "pagemanager" }
 
 func (p *pmPlugin) URL() string { return "github.com/pagemanager/pagemanager" }
 
 func (p *pmPlugin) Version() string { return "" }
-
-func (p *pmPlugin) Handlers() map[string]http.Handler {
-	return map[string]http.Handler{
-		"url-dashboard": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		}),
-	}
-}
 
 func (p *pmPlugin) Capabilities() []string {
 	return []string{
@@ -90,6 +79,10 @@ func (p *pmPlugin) Roles() map[string][]string {
 	}
 }
 
+func (p *pmPlugin) Setup(cfg *Config) error {
+	return nil
+}
+
 func (p *pmPlugin) Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -97,5 +90,12 @@ func (p *pmPlugin) Middleware() func(http.Handler) http.Handler {
 			}
 			next.ServeHTTP(w, r)
 		})
+	}
+}
+
+func (p *pmPlugin) Handlers() map[string]http.Handler {
+	return map[string]http.Handler{
+		"url-dashboard": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		}),
 	}
 }
