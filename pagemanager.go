@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -126,6 +127,10 @@ func DefaultConfig() (*Config, error) {
 
 	if cfg.DatabaseURL3 == "" {
 		cfg.DatabaseURL3 = cfg.DatabaseURL
+	}
+
+	if strings.HasPrefix(strings.TrimSpace(cfg.DatabaseURL), "postgres") {
+		cfg.DatabaseDialect = "postgres"
 	}
 	return cfg, nil
 }

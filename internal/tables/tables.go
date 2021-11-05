@@ -6,7 +6,7 @@ import (
 
 type PM_SITE struct {
 	sq.TableInfo `ddl:"primarykey=site_id unique=domain,subdomain,tilde_prefix"`
-	SITE_ID      sq.UUIDField    `ddl:"mysql:type=BINARY(16) sqlite:type=BLOB"`
+	SITE_ID      sq.UUIDField    `ddl:"mysql:type=BINARY(16)"`
 	DOMAIN       sq.StringField  `ddl:"notnull"`
 	SUBDOMAIN    sq.StringField  `ddl:"notnull"`
 	TILDE_PREFIX sq.StringField  `ddl:"notnull"`
@@ -84,7 +84,7 @@ type PM_ROLE_CAPABILITY struct {
 	CAPABILITY   sq.StringField
 
 	_ struct{} `ddl:"foreignkey={site_id,plugin,role references=pm_role onupdate=cascade index}"`
-	_ struct{} `ddl:"foreignkey={plugin,capabillity references=pm_capability onupdate=cascade index}"`
+	_ struct{} `ddl:"foreignkey={plugin,capability references=pm_capability onupdate=cascade index}"`
 }
 
 type PM_TAG_CAPABILITY struct {
@@ -121,9 +121,6 @@ type PM_USER struct {
 	PASSWORD_HASH          sq.StringField
 	RESET_PASSWORD_TOKEN   sq.StringField
 	RESET_PASSWORD_SENT_AT sq.TimeField
-
-	_ struct{} `ddl:"foreignkey={site_id,plugin,tag references=pm_tag onupdate=cascade index}"`
-	_ struct{} `ddl:"foreignkey={site_id,plugin,role references=pm_role onupdate=cascade index}"`
 }
 
 type PM_SESSION struct {
@@ -154,7 +151,7 @@ type PM_URL struct {
 	HANDLER      sq.StringField
 	CONFIG       sq.StringField
 
-	_ struct{} `ddl:"foreignkey={plugin,handler references=pm_plugin onupdate=cascade index}"`
+	_ struct{} `ddl:"foreignkey={plugin,handler references=pm_handler onupdate=cascade index}"`
 }
 
 type PM_URL_ROLE_CAPABILITY struct {
@@ -180,7 +177,7 @@ type PM_URL_TAG struct {
 }
 
 type PM_TEMPLATE_DATA struct {
-	sq.TableInfo `ddl:"primarykey=site_id,langcode,datafile"`
+	sq.TableInfo `ddl:"primarykey=site_id,langcode,data_file"`
 	SITE_ID      sq.UUIDField `ddl:"references={pm_site onupdate=cascade index}"`
 	LANGCODE     sq.StringField
 	DATA_FILE    sq.StringField

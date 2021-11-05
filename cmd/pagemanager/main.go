@@ -1,15 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
-	"fmt"
 	"log"
-	"os"
 
 	"github.com/bokwoon95/pagemanager"
 	"github.com/bokwoon95/pagemanager/internal/tables"
 	"github.com/bokwoon95/pagemanager/sq"
 	"github.com/bokwoon95/pagemanager/sq/ddl"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
@@ -18,8 +18,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%#v\n", cfg)
+	_ = cfg
+	// fmt.Printf("%#v\n", cfg)
 
+	err = ensuretables(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func ensuretables(cfg *pagemanager.Config) error {
 	var tbls = []sq.SchemaTable{
 		&tables.PM_SITE{},
 		&tables.PM_PLUGIN{},
@@ -43,16 +51,47 @@ func main() {
 		&tables.PM_TEMPLATE_DATA{},
 	}
 	for _, tbl := range tbls {
-		sq.ReflectTable(tbl, "")
+		err := sq.ReflectTable(tbl, "")
+		if err != nil {
+			return err
+		}
 	}
-
-	dbm, err := ddl.NewDatabaseMetadata(sq.DialectSQLite, ddl.WithTables(tbls...))
+	var driverName string
+	switch cfg.DatabaseDialect {
+	case "sqlite":
+		driverName = "sqlite"
+	case "postgres":
+		driverName = "postgres"
+	default:
+		driverName = "mysql"
+	}
+	db, err := sql.Open(driverName, cfg.DatabaseURL)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	m, err := ddl.Migrate(ddl.CreateMissing|ddl.UpdateExisting, ddl.DatabaseMetadata{}, dbm)
+	gotMetadata, err := ddl.NewDatabaseMetadata(cfg.DatabaseDialect, ddl.WithDB(db, nil))
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	m.WriteSQL(os.Stdout)
+	_ = gotMetadata
+	wantMetadata, err := ddl.NewDatabaseMetadata(cfg.DatabaseDialect, ddl.WithTables(tbls...))
+	if err != nil {
+		return err
+	}
+	_ = wantMetadata
+	// m, err := ddl.Migrate(ddl.DropExtraneous, gotMetadata, ddl.DatabaseMetadata{})
+	m, err := ddl.Migrate(ddl.CreateMissing, gotMetadata, wantMetadata)
+	if err != nil {
+		return err
+	}
+	_ = m
+	// err = m.WriteSQL(os.Stdout)
+	// if err != nil {
+	// 	return err
+	// }
+	err = m.Exec(db)
+	if err != nil {
+		return err
+	}
+	return nil
 }
