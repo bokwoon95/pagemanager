@@ -33,9 +33,9 @@ type PM_CAPABILITY struct {
 }
 
 type PM_ALLOWED_PLUGIN struct {
-	sq.TableInfo `ddl:"primarykey={. cols=plugin,site_id}"`
-	PLUGIN       sq.StringField `ddl:"notnull postgres:collate=C references={pm_plugin.plugin onupdate=cascade} index"`
-	SITE_ID      sq.UUIDField   `ddl:"notnull references={pm_site.site_id onupdate=cascade} index"`
+	sq.TableInfo `ddl:"primarykey=plugin,site_id"`
+	PLUGIN       sq.StringField `ddl:"notnull postgres:collate=C references={pm_plugin onupdate=cascade index}"`
+	SITE_ID      sq.UUIDField   `ddl:"notnull references={pm_site onupdate=cascade index}"`
 }
 
 type PM_DENIED_PLUGIN struct {
@@ -55,6 +55,7 @@ type PM_ALLOWED_HANDLER struct {
 	// wow how interesting, if you put an 'index' submodifier inside a foreignkey or references constraint it will automatically add an index for that foreign key.
 	_ struct{} `ddl:"foreignkey={plugin,handler references=pm_handler onupdate=cascade index}"`
 	_ struct{} `ddl:"index=plugin,handler"`
+	// TODO: handle the 63-byte identifier limit for automatic name generation
 }
 
 type PM_DENIED_HANDLER struct {
