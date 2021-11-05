@@ -24,6 +24,23 @@ func main() {
 		&tables.PM_SITE{},
 		&tables.PM_PLUGIN{},
 		&tables.PM_HANDLER{},
+		&tables.PM_CAPABILITY{},
+		&tables.PM_ALLOWED_PLUGIN{},
+		&tables.PM_DENIED_PLUGIN{},
+		&tables.PM_ALLOWED_HANDLER{},
+		&tables.PM_DENIED_HANDLER{},
+		&tables.PM_ROLE{},
+		&tables.PM_TAG{},
+		&tables.PM_ROLE_CAPABILITY{},
+		&tables.PM_TAG_CAPABILITY{},
+		&tables.PM_TAG_OWNER{},
+		&tables.PM_USER{},
+		&tables.PM_USER_ROLE{},
+		&tables.PM_SESSION{},
+		&tables.PM_URL{},
+		&tables.PM_URL_ROLE_CAPABILITY{},
+		&tables.PM_URL_TAG{},
+		&tables.PM_TEMPLATE_DATA{},
 	}
 	for _, tbl := range tbls {
 		sq.ReflectTable(tbl, "")
