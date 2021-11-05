@@ -1,7 +1,7 @@
 package tables
 
 import (
-	sq "github.com/bokwoon95/sq2"
+	"github.com/bokwoon95/pagemanager/sq"
 )
 
 type PM_SITE struct {
