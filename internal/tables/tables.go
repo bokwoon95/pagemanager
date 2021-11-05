@@ -1,4 +1,4 @@
-package pagemanager
+package tables
 
 import (
 	sq "github.com/bokwoon95/sq2"
@@ -45,10 +45,15 @@ type PM_DENIED_PLUGIN struct {
 }
 
 type PM_ALLOWED_HANDLER struct {
-	sq.TableInfo `ddl:"primarykey={. cols=plugin,handler,site_id} references={pm_handler.plugin,handler cols=plugin,handler onupdate=cascade} index"`
+	sq.TableInfo `ddl:"primarykey={. cols=plugin,handler,site_id}"`
 	PLUGIN       sq.StringField `ddl:"notnull postgres:collate=C"`
 	HANDLER      sq.StringField `ddl:"notnull postgres:collate=C"`
 	SITE_ID      sq.UUIDField   `ddl:"notnull references={pm_site.site_id onupdate=cascade} index"`
+
+	// UH OH TODO: primarykey,index and unique's first args should be the comma separated cols, not the name
+	// name should be a submodifier
+	_ struct{} `ddl:"foreignkey={plugin,handler references=pm_handler.plugin,handler onupdate=cascade}"`
+	_ struct{} `ddl:"index={. cols=plugin,handler}"`
 }
 
 type PM_DENIED_HANDLER struct {
