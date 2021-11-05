@@ -9,6 +9,8 @@ import (
 	"github.com/bokwoon95/pagemanager/internal/tables"
 	"github.com/bokwoon95/pagemanager/sq"
 	"github.com/bokwoon95/pagemanager/sq/ddl"
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -59,7 +61,7 @@ func ensuretables(cfg *pagemanager.Config) error {
 	var driverName string
 	switch cfg.DatabaseDialect {
 	case "sqlite":
-		driverName = "sqlite"
+		driverName = "sqlite3"
 	case "postgres":
 		driverName = "postgres"
 	default:
