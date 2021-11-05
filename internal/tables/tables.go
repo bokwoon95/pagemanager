@@ -45,15 +45,16 @@ type PM_DENIED_PLUGIN struct {
 }
 
 type PM_ALLOWED_HANDLER struct {
-	sq.TableInfo `ddl:"primarykey={. cols=plugin,handler,site_id}"`
+	sq.TableInfo `ddl:"primarykey=plugin,handler,site_id"`
 	PLUGIN       sq.StringField `ddl:"notnull postgres:collate=C"`
 	HANDLER      sq.StringField `ddl:"notnull postgres:collate=C"`
-	SITE_ID      sq.UUIDField   `ddl:"notnull references={pm_site.site_id onupdate=cascade} index"`
+	SITE_ID      sq.UUIDField   `ddl:"notnull references={pm_site onupdate=cascade} index"`
 
 	// UH OH TODO: primarykey,index and unique's first args should be the comma separated cols, not the name
 	// name should be a submodifier
-	_ struct{} `ddl:"foreignkey={plugin,handler references=pm_handler.plugin,handler onupdate=cascade}"`
-	_ struct{} `ddl:"index={. cols=plugin,handler}"`
+	// wow how interesting, if you put an 'index' submodifier inside a foreignkey or references constraint it will automatically add an index for that foreign key.
+	_ struct{} `ddl:"foreignkey={plugin,handler references=pm_handler onupdate=cascade index}"`
+	_ struct{} `ddl:"index=plugin,handler"`
 }
 
 type PM_DENIED_HANDLER struct {
