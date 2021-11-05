@@ -6,7 +6,7 @@ import (
 
 type PM_SITE struct {
 	sq.TableInfo `ddl:"unique={. cols=domain,subdomain,tilde_prefix}"`
-	SITE_ID      sq.UUIDField    `ddl:"notnull primarykey"`
+	SITE_ID      sq.UUIDField    `ddl:"notnull primarykey mysql:type=BINARY(16) sqlite:type=BLOB"`
 	DOMAIN       sq.StringField  `ddl:"notnull postgres:collate=C"`
 	SUBDOMAIN    sq.StringField  `ddl:"notnull postgres:collate=C"`
 	TILDE_PREFIX sq.StringField  `ddl:"notnull postgres:collate=C"`
@@ -55,7 +55,6 @@ type PM_ALLOWED_HANDLER struct {
 	// wow how interesting, if you put an 'index' submodifier inside a foreignkey or references constraint it will automatically add an index for that foreign key.
 	_ struct{} `ddl:"foreignkey={plugin,handler references=pm_handler onupdate=cascade index}"`
 	_ struct{} `ddl:"index=plugin,handler"`
-	// TODO: handle the 63-byte identifier limit for automatic name generation
 }
 
 type PM_DENIED_HANDLER struct {
@@ -65,8 +64,8 @@ type PM_DENIED_HANDLER struct {
 	HANDLER sq.StringField `ddl:"notnull postgres:collate=C"`
 	SITE_ID sq.UUIDField   `ddl:"notnull references={pm_site.site_id onupdate=cascade} index"`
 
-	_ struct{} `ddl:""` // TODO: facilitate this hacky workaround (in ddl) to stuff more annotations into a struct
-	_ struct{} // anything that is not a field would get interpeted as a table-level constraint instead
+	_ struct{} `ddl:""`
+	_ struct{}
 	_ struct{} // so you can use virtual=fts5 in a non-field as well
 	_ struct{} `ddl:"foreignkey={plugin,handler references=pm_handler.plugin,handler onupdate=cascade}"` // TODO
 }
