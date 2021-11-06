@@ -1,9 +1,13 @@
 package pagemanager
 
 import (
+	"database/sql"
 	"net/http"
-	"strings"
 	"sync"
+
+	"github.com/bokwoon95/pagemanager/internal/tables"
+	"github.com/bokwoon95/pagemanager/sq"
+	"github.com/bokwoon95/pagemanager/sq/ddl"
 )
 
 type Plugin interface {
@@ -14,7 +18,7 @@ type Plugin interface {
 	Roles() map[string][]string
 	Setup(cfg *Config) error
 	Middleware() func(http.Handler) http.Handler
-	Handlers() map[string]http.Handler
+	HandlerFuncs() map[string]http.HandlerFunc
 }
 
 var (
@@ -47,13 +51,26 @@ func Register(plugin Plugin) {
 
 type pmPlugin struct{}
 
-var _ Plugin = (*pmPlugin)(nil)
-
 func (p *pmPlugin) DefaultName() string { return "pagemanager" }
 
 func (p *pmPlugin) URL() string { return "github.com/pagemanager/pagemanager" }
 
 func (p *pmPlugin) Version() string { return "" }
+
+var capabilities = []string{
+	// site-level capabilities
+	"administrate-sites",
+	"administrate-roles",
+	"administrate-tags",
+	"assign-roles",
+	// url-level capabilities
+	"url.administrate",
+	"url.edit-all-entries",
+	"url.edit-all-handlers",
+	"url.edit-all-handler-configs",
+	"url.edit-handler",
+	"url.edit-handler-config",
+}
 
 func (p *pmPlugin) Capabilities() []string {
 	return []string{
@@ -72,6 +89,11 @@ func (p *pmPlugin) Capabilities() []string {
 	}
 }
 
+var roles = map[string][]string{
+	"superadmin": {"administrate-sites", "administrate-roles", "administrate-tags"},
+	"admin":      {"assign-roles"},
+}
+
 func (p *pmPlugin) Roles() map[string][]string {
 	return map[string][]string{
 		"superadmin": {"administrate-sites", "administrate-roles", "administrate-tags"},
@@ -80,22 +102,70 @@ func (p *pmPlugin) Roles() map[string][]string {
 }
 
 func (p *pmPlugin) Setup(cfg *Config) error {
+	var tbls = []sq.SchemaTable{
+		&tables.PM_SITE{},
+		&tables.PM_PLUGIN{},
+		&tables.PM_HANDLER{},
+		&tables.PM_CAPABILITY{},
+		&tables.PM_ALLOWED_PLUGIN{},
+		&tables.PM_DENIED_PLUGIN{},
+		&tables.PM_ALLOWED_HANDLER{},
+		&tables.PM_DENIED_HANDLER{},
+		&tables.PM_ROLE{},
+		&tables.PM_TAG{},
+		&tables.PM_ROLE_CAPABILITY{},
+		&tables.PM_TAG_CAPABILITY{},
+		&tables.PM_TAG_OWNER{},
+		&tables.PM_USER{},
+		&tables.PM_USER_ROLE{},
+		&tables.PM_SESSION{},
+		&tables.PM_URL{},
+		&tables.PM_URL_ROLE_CAPABILITY{},
+		&tables.PM_URL_TAG{},
+		&tables.PM_TEMPLATE_DATA{},
+	}
+	for _, tbl := range tbls {
+		err := sq.ReflectTable(tbl, "")
+		if err != nil {
+			return err
+		}
+	}
+	var driverName string
+	switch cfg.DatabaseDialect {
+	case "sqlite":
+		driverName = "sqlite3"
+	case "postgres":
+		driverName = "postgres"
+	default:
+		driverName = "mysql"
+	}
+	db, err := sql.Open(driverName, cfg.DatabaseURL)
+	if err != nil {
+		return err
+	}
+	gotMetadata, err := ddl.NewDatabaseMetadata(cfg.DatabaseDialect, ddl.WithDB(db, nil))
+	if err != nil {
+		return err
+	}
+	_ = gotMetadata
+	wantMetadata, err := ddl.NewDatabaseMetadata(cfg.DatabaseDialect, ddl.WithTables(tbls...))
+	if err != nil {
+		return err
+	}
+	_ = wantMetadata
+	// m, err := ddl.Migrate(ddl.DropExtraneous, gotMetadata, ddl.DatabaseMetadata{})
+	m, err := ddl.Migrate(ddl.CreateMissing, gotMetadata, wantMetadata)
+	if err != nil {
+		return err
+	}
+	_ = m
+	// err = m.WriteSQL(os.Stdout)
+	// if err != nil {
+	// 	return err
+	// }
+	err = m.Exec(db)
+	if err != nil {
+		return err
+	}
 	return nil
-}
-
-func (p *pmPlugin) Middleware() func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if strings.HasPrefix(r.URL.Path, "/pm-templates") {
-			}
-			next.ServeHTTP(w, r)
-		})
-	}
-}
-
-func (p *pmPlugin) Handlers() map[string]http.Handler {
-	return map[string]http.Handler{
-		"url-dashboard": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		}),
-	}
 }

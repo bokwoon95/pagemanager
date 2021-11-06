@@ -10,7 +10,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
+	"github.com/bokwoon95/pagemanager/internal/tables"
+	"github.com/bokwoon95/pagemanager/sq"
+	"github.com/bokwoon95/pagemanager/sq/ddl"
 	"github.com/joho/godotenv"
 )
 
@@ -26,8 +30,6 @@ type Config struct {
 	Mode            Mode
 	DatabaseDialect string
 	DatabaseURL     string
-	DatabaseURL2    string
-	DatabaseURL3    string
 	RootFS          fs.FS
 	TemplatesFS     fs.FS
 	UploadsFS       fs.FS
@@ -70,19 +72,23 @@ func DefaultConfig() (*Config, error) {
 	}
 	cfg.RootFS = os.DirFS(rootDir)
 
-	templatesDir := filepath.Join(rootDir, "pm-templates")
-	err = os.MkdirAll(templatesDir, 0775)
-	if err != nil {
-		return nil, fmt.Errorf("os.MkDirAll %s: %w", templatesDir, err)
+	if cfg.TemplatesFS == nil {
+		templatesDir := filepath.Join(rootDir, "pm-templates")
+		err = os.MkdirAll(templatesDir, 0775)
+		if err != nil {
+			return nil, fmt.Errorf("os.MkDirAll %s: %w", templatesDir, err)
+		}
+		cfg.TemplatesFS = os.DirFS(templatesDir)
 	}
-	cfg.TemplatesFS = os.DirFS(templatesDir)
 
-	uploadsDir := filepath.Join(rootDir, "pm-uploads")
-	err = os.MkdirAll(uploadsDir, 0775)
-	if err != nil {
-		return nil, fmt.Errorf("os.MkDirAll %s: %w", uploadsDir, err)
+	if cfg.UploadsFS == nil {
+		uploadsDir := filepath.Join(rootDir, "pm-uploads")
+		err = os.MkdirAll(uploadsDir, 0775)
+		if err != nil {
+			return nil, fmt.Errorf("os.MkDirAll %s: %w", uploadsDir, err)
+		}
+		cfg.UploadsFS = os.DirFS(uploadsDir)
 	}
-	cfg.UploadsFS = os.DirFS(uploadsDir)
 
 	if *flagSecretsFile != "" {
 		envMap := make(map[string]string)
@@ -102,12 +108,8 @@ func DefaultConfig() (*Config, error) {
 			return nil, err
 		}
 		cfg.DatabaseURL = envMap["PM_DATABASE_URL"]
-		cfg.DatabaseURL2 = envMap["PM_DATABASE_URL_2"]
-		cfg.DatabaseURL3 = envMap["PM_DATABASE_URL_3"]
 	} else if *flagSecretsEnv {
 		cfg.DatabaseURL = os.Getenv("PM_DATABASE_URL")
-		cfg.DatabaseURL2 = os.Getenv("PM_DATABASE_URL_2")
-		cfg.DatabaseURL3 = os.Getenv("PM_DATABASE_URL_3")
 	}
 
 	if cfg.DatabaseURL == "" {
@@ -121,65 +123,132 @@ func DefaultConfig() (*Config, error) {
 		cfg.DatabaseURL = sqliteFile
 	}
 
-	if cfg.DatabaseURL2 == "" {
-		cfg.DatabaseURL2 = cfg.DatabaseURL
-	}
-
-	if cfg.DatabaseURL3 == "" {
-		cfg.DatabaseURL3 = cfg.DatabaseURL
-	}
-
 	if strings.HasPrefix(strings.TrimSpace(cfg.DatabaseURL), "postgres") {
 		cfg.DatabaseDialect = "postgres"
 	}
 	return cfg, nil
 }
 
+type contextKey struct{ name string }
+
+var (
+	PagemanagerContextKey = &contextKey{name: "pagemanager"}
+	ctxpool               = sync.Pool{New: func() interface{} { return &Context{} }}
+)
+
+type Context struct {
+	SiteMode    Mode
+	SiteID      [16]byte
+	UserID      [16]byte
+	Username    string
+	Name        string
+	Langcode    string
+	TildePrefix string
+	Domain      string
+	Subdomain   string
+	URLPath     string
+	RawURL      string
+}
+
 type Pagemanager struct {
-	mode        Mode
-	siteID      [16]byte
-	db          *sql.DB
-	db1         *sql.DB
-	db2         *sql.DB
-	rootFS      fs.FS
-	templatesFS fs.FS
-	uploadsFS   fs.FS
-	locales     map[string]string // read from locales.txt or a default
-	// Plugins
-	handlers     map[[2]string]http.Handler     // plugin.handler -> http.Handler
-	capabilities map[string]map[string]struct{} // plugin -> capability -> struct{}
+	mode         Mode
+	siteID       [16]byte
+	dialect      string
+	db           *sql.DB
+	rootFS       fs.FS
+	templatesFS  fs.FS
+	uploadsFS    fs.FS
+	locales      map[string]string // read from locales.txt or a default
+	middlewares  []func(http.Handler) http.Handler
+	handlerfuncs map[[2]string]http.HandlerFunc
 }
 
 func New(cfg *Config) (*Pagemanager, error) {
-	pm := &Pagemanager{}
+	pm := &Pagemanager{
+		mode:         cfg.Mode,
+		dialect:      cfg.DatabaseDialect,
+		rootFS:       cfg.RootFS,
+		templatesFS:  cfg.TemplatesFS,
+		uploadsFS:    cfg.UploadsFS,
+		middlewares:  make([]func(http.Handler) http.Handler, 0, len(plugins)+1),
+		handlerfuncs: make(map[[2]string]http.HandlerFunc),
+	}
+	var driverName string
+	switch cfg.DatabaseDialect {
+	case "sqlite":
+		driverName = "sqlite3"
+	case "postgres":
+		driverName = "postgres"
+	default:
+		driverName = "mysql"
+	}
+	var err error
+	pm.db, err = sql.Open(driverName, cfg.DatabaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("sql.Open %s %s: %w", driverName, cfg.DatabaseURL, err)
+	}
+	var tbls = []sq.SchemaTable{
+		&tables.PM_SITE{},
+		&tables.PM_PLUGIN{},
+		&tables.PM_HANDLER{},
+		&tables.PM_CAPABILITY{},
+		&tables.PM_ALLOWED_PLUGIN{},
+		&tables.PM_DENIED_PLUGIN{},
+		&tables.PM_ALLOWED_HANDLER{},
+		&tables.PM_DENIED_HANDLER{},
+		&tables.PM_ROLE{},
+		&tables.PM_TAG{},
+		&tables.PM_ROLE_CAPABILITY{},
+		&tables.PM_TAG_CAPABILITY{},
+		&tables.PM_TAG_OWNER{},
+		&tables.PM_USER{},
+		&tables.PM_USER_ROLE{},
+		&tables.PM_SESSION{},
+		&tables.PM_URL{},
+		&tables.PM_URL_ROLE_CAPABILITY{},
+		&tables.PM_URL_TAG{},
+		&tables.PM_TEMPLATE_DATA{},
+	}
+	for _, tbl := range tbls {
+		err := sq.ReflectTable(tbl, "")
+		if err != nil {
+			return nil, err
+		}
+	}
+	err = ddl.AutoMigrate(pm.dialect, pm.db, ddl.CreateMissing, ddl.WithTables(tbls...))
+	if err != nil {
+		return nil, fmt.Errorf("ddl.AutoMigrate: %w", err)
+	}
+	pm.middlewares = append(pm.middlewares, func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasPrefix(r.URL.Path, "/pm-templates") {
+			}
+			next.ServeHTTP(w, r)
+		})
+	})
+	pm.handlerfuncs[[2]string{"pagemanager", "url-dashboard"}] = func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("hello world!"))
+	}
+	for _, plugin := range plugins {
+		_ = plugin
+	}
 	return pm, nil
 }
 
-type URLInfo struct {
-	RawURL      string
-	Domain      string
-	Subdomain   string
-	TildePrefix string
-	Langcode    string
-	URLPath     string
-}
-
-type CtxKey int
-
-const (
-	CtxKeyURLInfo CtxKey = iota
-	CtxKeySiteID
-	CtxKeyUserID
-)
-
 func (pm *Pagemanager) Pagemanager(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// maybe stuff everything into one key for performance?
-		ctx := r.Context()
-		ctx = context.WithValue(ctx, CtxKeyURLInfo, URLInfo{})
-		ctx = context.WithValue(ctx, CtxKeySiteID, [16]byte{})
-		ctx = context.WithValue(ctx, CtxKeyUserID, [16]byte{})
-		r = r.WithContext(ctx)
+		pmctx := ctxpool.Get().(*Context)
+		defer func() {
+			ctxpool.Put(pmctx)
+		}()
+		r = r.WithContext(context.WithValue(r.Context(), PagemanagerContextKey, pmctx))
+		// if we get a pm_url hit, we build it up here instead
+		if next == nil {
+			next = http.DefaultServeMux
+		}
+		for i := range pm.middlewares {
+			next = pm.middlewares[len(pm.middlewares)-1-i](next)
+		}
 		next.ServeHTTP(w, r)
 	})
 }

@@ -20,13 +20,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_ = cfg
-	// fmt.Printf("%#v\n", cfg)
-
-	err = ensuretables(cfg)
+	pm, err := pagemanager.New(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
+	_ = pm
+	// fmt.Printf("%#v\n", cfg)
+
+	// err = ensuretables(cfg)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 }
 
 func ensuretables(cfg *pagemanager.Config) error {
