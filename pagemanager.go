@@ -219,9 +219,10 @@ func New(cfg *Config) (*Pagemanager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ddl.AutoMigrate: %w", err)
 	}
+
 	PM_PLUGIN := tables.PM_PLUGIN{}
 	sq.ReflectTable(&PM_PLUGIN, "")
-	_, _, err = sq.Exec(pm.db, sq.SQLite.InsertInto(PM_PLUGIN).Valuesx(func(col *sq.Column) error {
+	_, _, err = sq.Exec(sq.Log(pm.db), sq.SQLite.InsertInto(PM_PLUGIN).Valuesx(func(col *sq.Column) error {
 		col.SetString(PM_PLUGIN.URL, "github.com/pagemanager/pagemanager")
 		col.SetString(PM_PLUGIN.VERSION, "0.0.0")
 		col.SetString(PM_PLUGIN.PLUGIN, "pagemanager")
@@ -230,6 +231,7 @@ func New(cfg *Config) (*Pagemanager, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	pm.middlewares = append(pm.middlewares, func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if strings.HasPrefix(r.URL.Path, "/pm-templates") {

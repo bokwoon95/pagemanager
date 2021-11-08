@@ -27,3 +27,35 @@ plugins are free to add handlers/capabilities/roles without breaking version com
 if a capability contains a '.' it will be excluded as a site-level capability
 this means that all site-level capabilities can only use dashes e.g. administrate-roles
 this encourages plugins to prefix object-level capabilities with the object name followed by a dot e.g. url.administrate
+
+type Plugin interface{
+    DefaultName() string
+    URL() string
+    Version() string
+    Capabilities() []string
+    Roles() map[string][]string
+    Setup(cfg *Config) error
+    Middleware(next http.Handler) http.Handler
+    HandlerNames() []string
+    Handler(name string, config []byte) http.Handler
+}
+
+type Pagemanager struct {
+    /* ... */
+    plugins []Plugin
+}
+*Config to take in an additional slice of plugins so that you actually have full control over what plugins are loaded into *Pagemanager.
+    the global plugins slice is still always loaded, but whatever's in the config will overwrite plugins of the same URL+version
+    meaning you can only ever add or replace plugins in a pagemanager struct, you cannot remove them
+    this all works out because the moment you import a plugin for its plugin.New() function, you will register a default plugin into the global plugins slice. But if you pass in a user-configured version of the plugin again into *Config, it will replace the deafult version of the plugin. All ok, works beautifully
+
+pagemanager *Config takes in an additional 'DatabaseSchema' argument that allows *Pagemanager and plugins to parameterise their tables by a database schema
+
+sq.New[USERS]()
+sq.NewAlias[USERS]("a")
+sq.NewAliasSchema[USERS]("a", srv.DBSchema)
+sq.NewInfo[USERS](func(info *TableInfo) { info.TableAlias = alias })
+sq.NewInfo[USERS](func(info *TableInfo) {
+    info.TableAlias = alias
+    info.TableSchema = srv.DBSchema
+})
