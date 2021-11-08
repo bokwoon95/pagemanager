@@ -32,6 +32,25 @@ CREATE TABLE pm_handler (
 
 CREATE INDEX pm_handler_plugin_idx ON pm_handler (plugin);
 
+-- need pagemanager:url.edit-all or pagemanager:url.edit-all-handlers or
+-- pagemanager:url.edit-all-handler-configs capability for the corresponding
+-- URL
+CREATE TABLE pm_url (
+    site_id UUID NOT NULL
+    ,urlpath TEXT NOT NULL
+    ,plugin TEXT NOT NULL
+    ,handler TEXT NOT NULL
+    ,config JSON
+
+    ,CONSTRAINT pm_url_site_id_urlpath_pkey PRIMARY KEY (site_id, urlpath)
+    ,CONSTRAINT pm_url_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id) ON UPDATE CASCADE
+    ,CONSTRAINT pm_url_plugin_handler_fkey FOREIGN KEY (plugin, handler) REFERENCES pm_handler (plugin, handler) ON UPDATE CASCADE
+);
+
+CREATE INDEX pm_url_site_id_idx ON pm_url (site_id);
+
+CREATE INDEX pm_url_plugin_handler_idx ON pm_url (plugin, handler);
+
 -- handled on startup
 CREATE TABLE pm_capability (
     plugin TEXT NOT NULL
@@ -227,25 +246,6 @@ CREATE TABLE pm_user_role (
 CREATE INDEX pm_user_role_site_id_user_id_fkey ON pm_user_role (site_id, user_id);
 
 CREATE INDEX pm_user_role_site_id_plugin_role_idx ON pm_user_role (site_id, plugin, role);
-
--- need pagemanager:url.edit-all or pagemanager:url.edit-all-handlers or
--- pagemanager:url.edit-all-handler-configs capability for the corresponding
--- URL
-CREATE TABLE pm_url (
-    site_id UUID NOT NULL
-    ,urlpath TEXT NOT NULL
-    ,plugin TEXT NOT NULL
-    ,handler TEXT NOT NULL
-    ,config JSON
-
-    ,CONSTRAINT pm_url_site_id_urlpath_pkey PRIMARY KEY (site_id, urlpath)
-    ,CONSTRAINT pm_url_site_id_fkey FOREIGN KEY (site_id) REFERENCES pm_site (site_id) ON UPDATE CASCADE
-    ,CONSTRAINT pm_url_plugin_handler_fkey FOREIGN KEY (plugin, handler) REFERENCES pm_handler (plugin, handler) ON UPDATE CASCADE
-);
-
-CREATE INDEX pm_url_site_id_idx ON pm_url (site_id);
-
-CREATE INDEX pm_url_plugin_handler_idx ON pm_url (plugin, handler);
 
 -- need pagemanager:url.administrate capability for the corresponding URL
 CREATE TABLE pm_url_role_capability (

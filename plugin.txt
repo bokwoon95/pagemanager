@@ -31,18 +31,20 @@ this encourages plugins to prefix object-level capabilities with the object name
 type Plugin interface{
     DefaultName() string
     URL() string
-    Version() string
-    Capabilities() []string
-    Roles() map[string][]string
-    Setup(cfg *Config) error
-    Middleware(next http.Handler) http.Handler
     HandlerNames() []string
     Handler(name string, config []byte) http.Handler
+
+    Version() string            // optional, default to ""
+    Capabilities() []string     // optional, default to nil
+    Roles() map[string][]string // optional, default to nil
+    Setup(cfg *Config) error    // optional, if you need to database setup at all you can get by without this
+    Middleware(next http.Handler) http.Handler // optional, if you no need middleware just return next as-is
 }
 
 type Pagemanager struct {
     /* ... */
     plugins []Plugin
+    pluginIndexes map[[2]string]int
 }
 *Config to take in an additional slice of plugins so that you actually have full control over what plugins are loaded into *Pagemanager.
     the global plugins slice is still always loaded, but whatever's in the config will overwrite plugins of the same URL+version

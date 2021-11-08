@@ -16,8 +16,8 @@ type PM_SITE struct {
 type PM_PLUGIN struct {
 	sq.TableInfo `ddl:"primarykey=plugin unique=url,version"`
 	PLUGIN       sq.StringField
-	URL          sq.StringField `ddl:"notnull"`
-	VERSION      sq.StringField `ddl:"notnull"`
+	URL          sq.StringField `ddl:"notnull"` // TODO: PLUGIN_URL
+	VERSION      sq.StringField `ddl:"notnull"` // TODO: PLUGIN_VER
 }
 
 type PM_HANDLER struct {
