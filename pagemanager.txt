@@ -21,6 +21,15 @@ if pagemanager:url-dashboard notices the user trying to delete a pagemanager:url
 /pm-plugins
 /locales.txt
 
+how does pagemanager the wrapper differ from pagemanager the plugin?
+== the wrapper ==
+- responsible for populating the *Context of the current request. plugin handlers don't have to worry about it by the time they receive the w, r.
+== the plugin ==
+- responsible for the url-dashboard, access-control-dashboard etc handlers that populate the database fields
+- also for the handlers that set the session cookie in the first place (i.e. the login handlers)
+
+should i convert the unique constraints into unique indexes just so that I can include other columns for postgres?
+
 DSN
 DSN2
 DSN3

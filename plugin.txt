@@ -43,6 +43,7 @@ type Plugin interface{
 
 type Pagemanager struct {
     /* ... */
+    middleware func(http.Handler) http.Handler
     plugins []Plugin
     pluginIndexes map[[2]string]int
 }
