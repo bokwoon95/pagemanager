@@ -6,7 +6,7 @@ import (
 
 type PM_SITE struct {
 	sq.TableInfo `ddl:"primarykey=site_id unique=domain,subdomain,tilde_prefix"`
-	SITE_ID      sq.UUIDField    `ddl:"mysql:type=BINARY(16)"`
+	SITE_ID      sq.UUIDField
 	DOMAIN       sq.StringField  `ddl:"notnull"`
 	SUBDOMAIN    sq.StringField  `ddl:"notnull"`
 	TILDE_PREFIX sq.StringField  `ddl:"notnull"`
@@ -66,7 +66,7 @@ type PM_ROLE struct {
 	sq.TableInfo `ddl:"primarykey=site_id,plugin,role"`
 	SITE_ID      sq.UUIDField   `ddl:"references={pm_site onupdate=cascade index}"`
 	PLUGIN       sq.StringField `ddl:"references={pm_plugin onupdate=cascade index}"`
-	ROLE         sq.StringField `ddl:""`
+	ROLE         sq.StringField
 }
 
 type PM_TAG struct {
